@@ -53,13 +53,17 @@ header.scrolled{box-shadow:0 6px 24px rgba(0,0,0,.08)}
 .hactions{display:flex;align-items:center;gap:8px;min-width:0}
 .btn-buy{background:var(--red);color:#fff;font-weight:900;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:12px 24px;border-radius:999px;white-space:nowrap;transition:transform .15s,background .2s;display:inline-block}
 .btn-buy:hover{background:#e00;transform:translateY(-1px)}
-.icon-btn{width:42px;height:42px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative;background:#fff;transition:border-color .2s}
+.icon-btn{width:44px;height:44px;border-radius:999px;border:1.5px solid #DDD;display:flex;align-items:center;justify-content:center;position:relative;background:#fff;transition:border-color .2s,background .2s;flex:0 0 auto}
 .icon-btn:hover{border-color:#000}
-.badge{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.burger span{display:block;width:20px;height:2px;background:#000;margin:4px 0;border-radius:2px;transition:transform .25s,opacity .2s}
-.burger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.icon-btn:active{background:#F2F2F2}
+.icon-btn svg{width:22px;height:22px}
+.badge{position:absolute;top:-5px;right:-5px;min-width:21px;height:21px;padding:0 6px;border:2px solid #fff;border-radius:999px;background:var(--red);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;line-height:1}
+.badge[hidden]{display:none}
+.burger{flex-direction:column;gap:5px}
+.burger span{display:block;width:22px;height:3px;background:#000;border-radius:3px;transition:transform .25s,opacity .2s}
+.burger.open span:nth-child(1){transform:translateY(8px) rotate(45deg)}
 .burger.open span:nth-child(2){opacity:0}
-.burger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.burger.open span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
 #drawer{position:fixed;top:var(--head);left:0;right:0;width:100%;background:#fff;border-bottom:1px solid var(--line);z-index:998;
   transform:translateY(-12px);opacity:0;visibility:hidden;transition:.25s;box-shadow:0 18px 40px rgba(0,0,0,.10)}
 #drawer.open{transform:translateY(0);opacity:1;visibility:visible}
@@ -68,7 +72,16 @@ header.scrolled{box-shadow:0 6px 24px rgba(0,0,0,.08)}
 #drawer nav a:last-child{border-bottom:0}
 main{padding-top:var(--head)}
 @media(max-width:520px){
-  .logo img{width:104px}.btn-buy{padding:11px 14px;font-size:11px}.icon-btn{width:38px;height:38px}.hbar{padding:0 12px;gap:6px}
+  .logo img{width:96px}
+  .btn-buy{padding:12px 16px;font-size:11px}
+  .hbar{padding:0 10px;gap:8px}
+  .hactions{gap:8px}
+}
+.btn-buy .corto{display:none}
+@media(max-width:430px){
+  .btn-buy .largo{display:none}
+  .btn-buy .corto{display:inline}
+  .logo img{width:88px}
 }
 
 /* ================= HERO ================= */
@@ -240,9 +253,9 @@ footer img.flogo{width:120px;margin:0 auto 20px}
       <img src="images/logo-sscars-cropped.jpg" width="140" height="34" alt="SSCARS Garage Collections">
     </a>
     <div class="hactions">
-      <a href="#packs" class="btn-buy">Comprar ahora</a>
+      <a href="#packs" class="btn-buy"><span class="largo">Comprar ahora</span><span class="corto">Comprar</span></a>
       <button class="icon-btn" id="cartBtn" aria-label="Abrir carrito" aria-haspopup="dialog">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"></path></svg>
         <span class="badge" id="badge" hidden>0</span>
       </button>
       <button class="icon-btn burger" id="burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="drawer">
