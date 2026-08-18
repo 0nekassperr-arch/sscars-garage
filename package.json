@@ -1,0 +1,13 @@
+{
+  "name": "sscarsgarage",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SSCARS GARAGE COLLECTIONS - landing colección limitada JDM",
+  "scripts": {
+    "dev": "npx serve public -l 3000"
+  },
+  "dependencies": {
+    "stripe": "^16.12.0"
+  }
+}
