@@ -49,7 +49,7 @@ header{position:fixed;top:0;left:0;right:0;height:var(--head);z-index:999;backgr
   -webkit-backdrop-filter:saturate(180%) blur(12px);backdrop-filter:saturate(180%) blur(12px);transition:box-shadow .25s}
 header.scrolled{box-shadow:0 6px 24px rgba(0,0,0,.08)}
 .hbar{height:var(--head);display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;max-width:1200px;margin:0 auto;padding:0 16px}
-.logo img{width:140px;height:auto}
+.logo img{width:172px;height:auto;flex:0 0 auto}
 .hactions{display:flex;align-items:center;gap:8px;min-width:0}
 .btn-buy{background:var(--red);color:#fff;font-weight:900;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:12px 24px;border-radius:999px;white-space:nowrap;transition:transform .15s,background .2s;display:inline-block}
 .btn-buy:hover{background:#e00;transform:translateY(-1px)}
@@ -72,7 +72,7 @@ header.scrolled{box-shadow:0 6px 24px rgba(0,0,0,.08)}
 #drawer nav a:last-child{border-bottom:0}
 main{padding-top:var(--head)}
 @media(max-width:520px){
-  .logo img{width:96px}
+  .logo img{width:116px}
   .btn-buy{padding:12px 16px;font-size:11px}
   .hbar{padding:0 10px;gap:8px}
   .hactions{gap:9px}
@@ -87,6 +87,10 @@ main{padding-top:var(--head)}
 @media(max-width:430px){
   .btn-buy .largo{display:none}
   .btn-buy .corto{display:inline}
+  .logo img{width:104px}
+}
+/* por debajo de 340px la barra no tiene holgura: el logo se queda como estaba */
+@media(max-width:340px){
   .logo img{width:88px}
 }
 
