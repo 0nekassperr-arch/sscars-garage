@@ -20,13 +20,13 @@ Ritmo real: **20-25 min el primer modelo, 8-10 min a partir del tercero.** Los 1
 
 ## El material de entrada ya lo tienes
 
-En `produccion/referencias/` hay una carpeta por modelo. Cuantas más vistas le des a la IA, mejor sale la malla:
+En `produccion/referencias/` hay **una carpeta por modelo, autocontenida**: sube la carpeta entera a Hunyuan3D y listo. Cuantas más vistas le des a la IA, mejor sale la malla:
 
 | Vista | Para qué sirve | Estado |
 |---|---|---|
 | ¾ frontal | Base principal | ✅ los 15 |
 | ¾ trasera | Cierra la parte de atrás | ✅ los 15 |
-| **Lateral** | Define la silueta, la más útil de las tres extra | 🔄 en curso |
+| **Lateral** | Define la silueta, la más útil de las tres extra | ✅ 12 de 15 (faltan 3000gt, wrc, lfa) |
 | Frontal recta | Simetría | ✅ solo R34 (ejemplo) |
 | Cenital | Techo y contorno | ✅ solo R34 (ejemplo) |
 
