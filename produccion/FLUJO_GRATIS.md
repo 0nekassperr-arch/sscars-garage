@@ -26,7 +26,7 @@ En `produccion/referencias/` hay **una carpeta por modelo, autocontenida**: sube
 |---|---|---|
 | ¾ frontal | Base principal | ✅ los 15 |
 | ¾ trasera | Cierra la parte de atrás | ✅ los 15 |
-| **Lateral** | Define la silueta, la más útil de las tres extra | ✅ 12 de 15 (faltan 3000gt, wrc, lfa) |
+| **Lateral** | Define la silueta, la más útil de las tres extra | ✅ los 15 |
 | Frontal recta | Simetría | ✅ solo R34 (ejemplo) |
 | Cenital | Techo y contorno | ✅ solo R34 (ejemplo) |
 
