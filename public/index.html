@@ -98,13 +98,13 @@ main{padding-top:var(--head)}
 /* ================= HERO ================= */
 .hero{padding:clamp(34px,6vw,58px) 0 clamp(30px,5vw,46px)}
 .hgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:30px;align-items:center}
-@media(min-width:900px){.hgrid{grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);gap:40px}}
-.hero h1{margin:14px 0 0;font-family:var(--impact);font-weight:900;text-transform:uppercase;line-height:.88;overflow-wrap:break-word;letter-spacing:-.005em}
+@media(min-width:900px){.hgrid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:44px;align-items:start}}
+.hero h1{margin:14px 0 30px;font-family:var(--impact);font-weight:900;text-transform:uppercase;line-height:.86;overflow-wrap:break-word;letter-spacing:-.01em}
 .hero .l1,.hero .l2{display:block;transform:skewX(-6deg);transform-origin:left center;max-width:100%}
-.hero .l1{font-size:clamp(38px,8.4vw,66px);white-space:nowrap;color:var(--red);text-shadow:0 3px 0 rgba(0,0,0,.06)}
-.hero .l2{font-size:clamp(33px,7.4vw,60px);color:#000;position:relative}
-.hero .l2::after{content:"";display:block;width:clamp(60px,16vw,132px);height:7px;background:var(--red);margin-top:14px;border-radius:2px}
-.hero p.sub{color:#3a3a3a;margin:22px 0 0;font-size:clamp(15px,1.6vw,17.5px);max-width:540px;font-weight:500;line-height:1.6}
+.hero .l1{font-size:clamp(38px,9.4vw,104px);white-space:nowrap;color:var(--red);text-shadow:0 3px 0 rgba(0,0,0,.06)}
+.hero .l2{font-size:clamp(33px,8.3vw,92px);color:#000;position:relative}
+.hero .l2::after{content:"";display:block;width:clamp(60px,16vw,190px);height:9px;background:var(--red);margin-top:14px;border-radius:2px}
+.hero p.sub{color:#3a3a3a;margin:0;font-size:clamp(15px,1.6vw,17.5px);max-width:540px;font-weight:500;line-height:1.6}
 .kickbar{display:inline-flex;align-items:center;gap:10px;margin:0}
 .kickbar::before{content:"";width:26px;height:3px;background:var(--red);border-radius:2px}
 .hctas{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:22px}
@@ -294,10 +294,10 @@ footer img.flogo{width:120px;margin:0 auto 20px}
   <!-- ============ HERO ============ -->
   <section class="hero">
     <div class="wrap">
+      <p class="kicker kickbar" style="margin:0">Colección limitada</p>
+      <h1><span class="l1">Leyendas JDM</span><span class="l2">15 iconos únicos</span></h1>
       <div class="hgrid">
         <div>
-          <p class="kicker kickbar" style="margin:0">Colección limitada</p>
-          <h1><span class="l1">Leyendas JDM</span><span class="l2">15 iconos únicos</span></h1>
           <p class="sub">Colección limitada y exclusiva de los deportivos más legendarios e icónicos de la cultura JDM motorsport. Compra tu caja sorpresa y completa esta colección única.</p>
 
           <div class="hctas">
