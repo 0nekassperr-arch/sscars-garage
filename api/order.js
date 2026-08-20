@@ -5,61 +5,57 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-
 
 /** Los 15 modelos. fileFinal = STL que se manda a fabricar. */
 export const MODELOS = [
-  { n: '01', name: 'El Ronin de Medianoche', slug: 'r34' },
-  { n: '02', name: 'El Ogro de la Autopista', slug: 'r32' },
-  { n: '03', name: 'La Zeta Salvaje', slug: '350z' },
-  { n: '04', name: 'El Naranja Furioso', slug: 'supra' },
-  { n: '05', name: 'El Repartidor de Tofu', slug: 'ae86' },
-  { n: '06', name: 'El Mini Exotico', slug: 'mr2' },
-  { n: '07', name: 'El Espiritu Rotativo', slug: 'rx7' },
-  { n: '08', name: 'El Samurai de Senna', slug: 'nsx' },
-  { n: '09', name: 'El Pequeno Tipo R', slug: 'civic' },
-  { n: '10', name: 'El Grito VTEC', slug: 's2000' },
-  { n: '11', name: 'El Evolucionado', slug: 'evo' },
-  { n: '12', name: 'El Verde Fosforito', slug: 'eclipse' },
-  { n: '13', name: 'El Gran Turismo', slug: '3000gt' },
-  { n: '14', name: 'El 22B Azul', slug: 'wrc' },
-  { n: '15', name: 'El Angel Blanco', slug: 'lfa' }
+  { n: '01', name: 'El Emperador Azul',        slug: 'r34',     peso: 2.5 },
+  { n: '02', name: 'El Monstruo Purpura',      slug: 'r32',     peso: 7   },
+  { n: '03', name: 'Colmillo Azul',            slug: '350z',    peso: 7   },
+  { n: '04', name: 'La Bestia Naranja',        slug: 'supra',   peso: 2.5 },
+  { n: '05', name: 'El Fantasma de la Montana',slug: 'ae86',    peso: 9   },
+  { n: '06', name: 'El Exotico de Bolsillo',   slug: 'mr2',     peso: 9   },
+  { n: '07', name: 'El Aullido Rotativo',      slug: 'rx7',     peso: 5   },
+  { n: '08', name: 'El Samurai Rojo',          slug: 'nsx',     peso: 5   },
+  { n: '09', name: 'El Puno Blanco',           slug: 'civic',   peso: 9   },
+  { n: '10', name: 'El Grito Amarillo',        slug: 's2000',   peso: 7   },
+  { n: '11', name: 'El Domador',               slug: 'evo',     peso: 7   },
+  { n: '12', name: 'Verde Veneno',             slug: 'eclipse', peso: 9   },
+  { n: '13', name: 'El Visionario',            slug: '3000gt',  peso: 9   },
+  { n: '14', name: 'El Azul del Rally',        slug: 'wrc',     peso: 7   },
+  { n: '15', name: 'La Voz del V10',           slug: 'lfa',     peso: 5   }
 ];
 
 const GOLD_PROB = 0.002; // 1/500 por caja
 
 /**
  * Sorteo de la caja sorpresa.
- * - Baraja Fisher-Yates real (no sort(()=>0.5-random), que está sesgado).
+ * - Muestreo PONDERADO sin reemplazo: respeta los porcentajes publicados en la web
+ *   (2,5% legendario / 5% epico / 7% raro / 9% clasico), que suman 100.
  * - Cero repetidos dentro del mismo pedido.
- * - Si el pedido supera los 15 modelos, se rellena con una nueva baraja.
- * - Gold Chrome: tirada independiente por caja, 1/500.
- * - packFull: la colección completa entrega los 15 + 2 Gold garantizados.
+ * - Si el pedido supera los 15 modelos, se abre una ronda nueva.
+ * - Gold Chrome: tirada independiente por caja, 1/500. NO garantizado en ningun pack.
  */
 export function elegirSinRepes(cantidad, { packFull = false } = {}) {
   const total = Math.min(Math.max(parseInt(cantidad, 10) || 1, 1), 60);
-  const baraja = () => {
-    const a = [...MODELOS];
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
+
+  const sacarUno = (pool) => {
+    const suma = pool.reduce((a, m) => a + m.peso, 0);
+    let r = Math.random() * suma;
+    for (let i = 0; i < pool.length; i++) {
+      r -= pool[i].peso;
+      if (r <= 0) return pool.splice(i, 1)[0];
     }
-    return a;
+    return pool.pop();
   };
 
-  let pool = baraja();
+  let pool = [...MODELOS];
   const out = [];
   while (out.length < total) {
-    if (!pool.length) pool = baraja();
-    out.push(pool.shift());
+    if (!pool.length) pool = [...MODELOS];
+    out.push(sacarUno(pool));
   }
 
-  if (packFull) {
-    const golds = new Set();
-    while (golds.size < Math.min(2, out.length)) golds.add(Math.floor(Math.random() * out.length));
-    return out.map((m, i) => ({ ...m, esGold: golds.has(i) }));
-  }
+  // El pack completo entrega los 15; el dorado sigue siendo azar puro, nunca garantizado.
   return out.map(m => ({ ...m, esGold: Math.random() < GOLD_PROB }));
 }
 
-// OJO: STL no lleva color. Para impresión a color el fichero debe ser 3MF / OBJ+MTL / GLB.
-// Se controla con MODEL_EXT (stl | 3mf | obj | glb).
 const MODEL_EXT = process.env.MODEL_EXT || 'stl';
 const stlUrl = (slug, gold) => `${process.env.STL_BASE_URL}/${slug}${gold ? '-gold' : ''}.${MODEL_EXT}`;
 

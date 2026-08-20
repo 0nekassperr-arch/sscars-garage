@@ -96,8 +96,6 @@ main{padding-top:var(--head)}
 
 /* ================= HERO ================= */
 .hero{padding:clamp(34px,6vw,58px) 0 clamp(30px,5vw,46px)}
-.hgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:30px;align-items:center}
-@media(min-width:900px){.hgrid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:44px;align-items:start}}
 .hero h1{margin:14px 0 30px;font-family:var(--impact);font-weight:900;text-transform:uppercase;line-height:.86;overflow-wrap:break-word;letter-spacing:-.01em}
 .hero .l1,.hero .l2{display:block;transform:skewX(-6deg);transform-origin:left center;max-width:100%}
 .hero .l1{font-size:clamp(38px,9.4vw,104px);white-space:nowrap;color:var(--red);text-shadow:0 3px 0 rgba(0,0,0,.06)}
@@ -106,10 +104,10 @@ main{padding-top:var(--head)}
 .hero p.sub{color:#3a3a3a;margin:0;font-size:clamp(15px,1.6vw,17.5px);max-width:540px;font-weight:500;line-height:1.6}
 .kickbar{display:inline-flex;align-items:center;gap:10px;margin:0}
 .kickbar::before{content:"";width:26px;height:3px;background:var(--red);border-radius:2px}
-.hctas{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:22px}
+.hctas{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:26px}
 .btn-ghost{border:1px solid var(--line);border-radius:999px;padding:12px 22px;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;transition:.2s;background:#fff}
 .btn-ghost:hover{border-color:#000}
-.count{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-width:520px;margin:26px 0 0}
+.count{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-width:520px;margin:18px 0 0}
 .cbox{background:var(--red);color:#fff;border-radius:14px;padding:13px 4px;text-align:center;animation:pulse 2.6s ease-in-out infinite}
 .cnum{font-family:var(--impact);font-size:clamp(24px,6vw,36px);line-height:1;font-weight:900;font-variant-numeric:tabular-nums}
 .clab{font-size:clamp(8px,2.2vw,10px);letter-spacing:.1em;font-weight:800;opacity:.92;margin-top:5px}
@@ -117,12 +115,10 @@ main{padding-top:var(--head)}
 .warn{margin:14px 0 0;font-size:14px;font-weight:600;max-width:520px}
 .trust{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 .chip{border:1px solid var(--line);border-radius:999px;padding:8px 15px;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:#fff;display:inline-flex;gap:7px;align-items:center}
-/* collage hero */
-.collage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto auto;gap:12px}
-.collage .big{grid-column:1/-1;background:var(--grey);border-radius:24px;padding:4%;position:relative}
-.collage .sm{background:var(--grey);border-radius:20px;padding:6%}
-.collage img{width:100%;height:100%;object-fit:contain;aspect-ratio:4/3}
-.tagfloat{position:absolute;left:16px;top:16px;background:#000;color:#fff;font-family:var(--impact);font-size:12px;letter-spacing:.12em;padding:6px 12px;border-radius:999px}
+.trustlist{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:12px;max-width:520px}
+.trustlist li{display:flex;align-items:center;gap:12px;font-size:15px;color:#3a3a3a}
+.trustlist svg{flex:0 0 22px;width:22px;height:22px;fill:none;stroke:var(--red);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.trustlist b{color:#000;font-weight:800}
 
 /* ================= PASOS ================= */
 .steps{background:var(--grey)}
@@ -170,6 +166,27 @@ main{padding-top:var(--head)}
 .goldshot span{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#999}
 .goldtag{display:inline-block;background:#FFD879;color:#000;font-family:var(--impact);letter-spacing:.14em;font-size:12px;padding:7px 14px;border-radius:999px}
 .goldsec .btn-buy{margin-top:20px}
+
+/* ================= RAREZA ================= */
+.rar{background:var(--grey)}
+.tier{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px 24px;margin-top:16px}
+.tier-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px}
+.tier-n{font-family:var(--impact);font-size:20px;text-transform:uppercase;letter-spacing:.02em}
+.tier-p{font-family:var(--impact);font-size:26px}
+.tier-s{font-size:12px;color:#888;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.bar{height:12px;border-radius:999px;background:#ECECEC;margin:14px 0 14px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px}
+.tier ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.tier li{font-size:12.5px;font-weight:700;border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:#FAFAFA}
+.t1 .tier-n,.t1 .tier-p{color:#B8860B}.t1 i{background:linear-gradient(90deg,#E8C56B,#B8860B)}
+.t2 .tier-n,.t2 .tier-p{color:var(--red)}.t2 i{background:var(--red)}
+.t3 .tier-n,.t3 .tier-p{color:#1F6FEB}.t3 i{background:#1F6FEB}
+.t4 .tier-n,.t4 .tier-p{color:#444}.t4 i{background:#8A8A8A}
+.goldrow{background:#0A0A0A;color:#fff;border-radius:20px;padding:24px;margin-top:16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px}
+.goldrow .g1{font-family:var(--impact);font-size:22px;text-transform:uppercase;color:#FFD879}
+.goldrow .g2{font-size:14px;color:#BDBDBD;max-width:520px}
+.goldrow .g3{font-family:var(--impact);font-size:40px;color:#FFD879;line-height:1}
+.rarnote{font-size:12.5px;color:#777;margin-top:18px;line-height:1.7}
 
 /* ================= PACKS ================= */
 .packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:20px;margin-top:34px;align-items:stretch}
@@ -290,6 +307,7 @@ footer img.flogo{width:120px;margin:0 auto 20px}
     <a href="#coleccion">La colección</a>
     <a href="#acabado">Acabado</a>
     <a href="#gold">Gold Chrome</a>
+    <a href="#rareza">Probabilidades</a>
     <a href="#packs">Packs y precios</a>
     <a href="#faq">Preguntas frecuentes</a>
   </nav>
@@ -302,41 +320,31 @@ footer img.flogo{width:120px;margin:0 auto 20px}
   <section class="hero">
     <div class="wrap">
       <p class="kicker kickbar" style="margin:0">Colección limitada</p>
-      <h1><span class="l1">Leyendas JDM</span><span class="l2">15 iconos únicos</span></h1>
-      <div class="hgrid">
-        <div>
-          <p class="sub">Colección limitada y exclusiva de los deportivos más legendarios e icónicos de la cultura JDM motorsport. Compra tu caja sorpresa y completa esta colección única.</p>
 
-          <div class="hctas">
-            <a href="#packs" class="btn-buy">Quiero mi caja</a>
-            <a href="#coleccion" class="btn-ghost">Ver las 15 figuras</a>
-          </div>
-
-          <div class="count" id="count" role="timer" aria-label="Tiempo restante de la colección">
-            <div class="cbox"><div class="cnum" id="d">00</div><div class="clab">DÍAS</div></div>
-            <div class="cbox"><div class="cnum" id="h">00</div><div class="clab">HORAS</div></div>
-            <div class="cbox"><div class="cnum" id="m">00</div><div class="clab">MINUTOS</div></div>
-            <div class="cbox"><div class="cnum" id="s">00</div><div class="clab">SEGUNDOS</div></div>
-          </div>
-          <p class="warn">Una vez que el contador llegue a 0, esta colección no volverá a estar disponible. Jamás.</p>
-
-          <div class="trust">
-            <span class="chip">Envío gratuito</span>
-            <span class="chip">Sin repetidos en el pack</span>
-            <span class="chip">Gold Chrome 1/500</span>
-            <span class="chip">Pago seguro</span>
-          </div>
-        </div>
-
-        <div class="collage" aria-hidden="true">
-          <div class="big">
-            <span class="tagfloat">1 DE 15</span>
-            <img src="images/r34-front.webp" width="1100" height="733" alt="" fetchpriority="high">
-          </div>
-          <div class="sm"><img src="images/350z-front.webp" width="1100" height="733" alt="" loading="lazy"></div>
-          <div class="sm"><img src="images/lfa-front.webp" width="1100" height="733" alt="" loading="lazy"></div>
-        </div>
+      <div class="count" id="count" role="timer" aria-label="Tiempo restante de la colección">
+        <div class="cbox"><div class="cnum" id="d">00</div><div class="clab">DÍAS</div></div>
+        <div class="cbox"><div class="cnum" id="h">00</div><div class="clab">HORAS</div></div>
+        <div class="cbox"><div class="cnum" id="m">00</div><div class="clab">MINUTOS</div></div>
+        <div class="cbox"><div class="cnum" id="s">00</div><div class="clab">SEGUNDOS</div></div>
       </div>
+
+      <h1><span class="l1">Leyendas JDM</span><span class="l2">15 iconos únicos</span></h1>
+
+      <p class="sub">Colección limitada y exclusiva de los deportivos más legendarios e icónicos de la cultura JDM motorsport. Compra tu caja sorpresa y completa esta colección única.</p>
+
+      <div class="hctas">
+        <a href="#packs" class="btn-buy">Quiero mi caja</a>
+        <a href="#coleccion" class="btn-ghost">Ver las 15 figuras</a>
+      </div>
+
+      <p class="warn">Una vez que el contador llegue a 0, esta colección no volverá a estar disponible. Jamás.</p>
+
+      <ul class="trustlist">
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 3h13v13H1z"/><path d="M14 8h4l3 3v5h-7z"/><circle cx="6" cy="19" r="2"/><circle cx="17.5" cy="19" r="2"/></svg><span><b>Envío gratuito</b> en todos los packs</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><span><b>Sin repetidos</b> dentro del mismo pack</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 15 9l7 .6-5.3 4.6L18.3 21 12 17.3 5.7 21l1.6-6.8L2 9.6 9 9z"/></svg><span><b>Gold Chrome</b> secreto, 1 de cada 500</span></li>
+        <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span><b>Pago seguro</b> con Stripe</span></li>
+      </ul>
     </div>
   </section>
 
@@ -348,7 +356,7 @@ footer img.flogo{width:120px;margin:0 auto 20px}
       <div class="sgrid">
         <div class="step"><div class="n">01</div><h3>Eliges tu pack</h3><p>1, 3, 6 cajas o la colección completa. Envío gratuito en todos.</p></div>
         <div class="step"><div class="n">02</div><h3>La caja decide</h3><p>El modelo se asigna al azar en el momento del pedido. Nadie elige, ni tú ni nosotros.</p></div>
-        <div class="step"><div class="n">03</div><h3>Cero repetidos</h3><p>Dentro del mismo pack nunca se repite figura. Y siempre hay opción de Gold Chrome.</p></div>
+        <div class="step"><div class="n">03</div><h3>Cero repetidos</h3><p>Dentro del mismo pack nunca se repite figura. Y con muchísima suerte, puede aparecer una Gold Chrome.</p></div>
       </div>
     </div>
   </section>
@@ -368,11 +376,11 @@ footer img.flogo{width:120px;margin:0 auto 20px}
     <div class="wrap">
       <p class="kicker" style="margin:0">Acabado</p>
       <h2 class="big">Acabado a <span class="red">color</span></h2>
-      <p class="lead">Vienen a color, tal como los ves. Resina a color premium, barniz satinado, base negra mate con logo SSCARS. 7 cm de largo, detalle interior visible. Base display de 3 cm antideslizante con logo grabado.</p>
+      <p class="lead">Vienen a color, tal como los ves. Resina a color premium, barniz satinado y base negra mate. 7 cm de largo, con detalle interior visible y peana display de 3 cm antideslizante.</p>
       <div class="fgrid">
         <div class="fitem"><h3>Resina a color</h3><p>Color integrado y detallado, con barniz satinado uniforme en toda la carrocería.</p></div>
         <div class="fitem"><h3>Caja sorpresa</h3><p>No eliges modelo. Pack aleatorio y sin repetidos dentro del mismo pack.</p></div>
-        <div class="fitem"><h3>Base negra</h3><p>Peana display de 3 cm, antideslizante y con el logo SSCARS grabado.</p></div>
+        <div class="fitem"><h3>Base negra</h3><p>Peana display de 3 cm en negro mate, antideslizante, para exponerla donde quieras.</p></div>
       </div>
     </div>
   </section>
@@ -392,6 +400,58 @@ footer img.flogo{width:120px;margin:0 auto 20px}
           <div class="goldshot"><img src="images/gold-rear.webp" width="1100" height="733" alt="Figura en acabado Gold Chrome, vista trasera" loading="lazy"><span>Trasera</span></div>
         </div>
       </div>
+    </div>
+  </section>
+
+
+  <!-- ============ RAREZA ============ -->
+  <section id="rareza" class="rar">
+    <div class="wrap">
+      <p class="kicker" style="margin:0">Probabilidades</p>
+      <h2 class="big">Qué te puede <span class="red">tocar</span></h2>
+      <p class="lead">Cada caja se sortea con estas probabilidades. Las publicamos porque creemos que un coleccionista tiene derecho a saber a qué juega.</p>
+
+      <div class="tier t1">
+        <div class="tier-h">
+          <div><span class="tier-n">Legendario</span> <span class="tier-s">· 2,5% cada uno</span></div>
+          <span class="tier-p">5%</span>
+        </div>
+        <div class="bar"><i style="width:21%"></i></div>
+        <ul><li>01 · El Emperador Azul</li><li>04 · La Bestia Naranja</li></ul>
+      </div>
+      <div class="tier t2">
+        <div class="tier-h">
+          <div><span class="tier-n">Épico</span> <span class="tier-s">· 5% cada uno</span></div>
+          <span class="tier-p">15%</span>
+        </div>
+        <div class="bar"><i style="width:42%"></i></div>
+        <ul><li>07 · El Aullido Rotativo</li><li>08 · El Samurái Rojo</li><li>15 · La Voz del V10</li></ul>
+      </div>
+      <div class="tier t3">
+        <div class="tier-h">
+          <div><span class="tier-n">Raro</span> <span class="tier-s">· 7% cada uno</span></div>
+          <span class="tier-p">35%</span>
+        </div>
+        <div class="bar"><i style="width:64%"></i></div>
+        <ul><li>02 · El Monstruo Púrpura</li><li>03 · Colmillo Azul</li><li>10 · El Grito Amarillo</li><li>11 · El Domador</li><li>14 · El Azul del Rally</li></ul>
+      </div>
+      <div class="tier t4">
+        <div class="tier-h">
+          <div><span class="tier-n">Clásico</span> <span class="tier-s">· 9% cada uno</span></div>
+          <span class="tier-p">45%</span>
+        </div>
+        <div class="bar"><i style="width:100%"></i></div>
+        <ul><li>05 · El Fantasma de la Montaña</li><li>06 · El Exótico de Bolsillo</li><li>09 · El Puño Blanco</li><li>12 · Verde Veneno</li><li>13 · El Visionario</li></ul>
+      </div>
+      <div class="goldrow">
+        <div>
+          <div class="g1">Gold Chrome</div>
+          <p class="g2" style="margin:6px 0 0">Cualquiera de los 15 puede aparecer en dorado cromado. Sustituye a la versión en color y no está garantizado en ningún pack: es puro azar.</p>
+        </div>
+        <div style="text-align:right"><div class="g3">0,2%</div><div class="tier-s" style="color:#888">1 de cada 500</div></div>
+      </div>
+
+      <p class="rarnote">Los porcentajes son por caja y suman el 100%. Dentro de un mismo pack no se repite modelo, por lo que en packs de varias cajas las probabilidades se recalculan sobre los modelos que aún no han salido. La tirada del Gold Chrome es independiente.</p>
     </div>
   </section>
 
@@ -418,7 +478,7 @@ footer img.flogo{width:120px;margin:0 auto 20px}
         <details open><summary>¿Puedo repetir modelo?</summary><p>Dentro del mismo pack no hay repetidos. Entre packs diferentes podrías repetir, pero el sistema intenta minimizarlo. La versión Gold Chrome sustituye a la de color.</p></details>
         <details><summary>¿Puedo elegir qué figura quiero?</summary><p>No, y esa es la gracia. El modelo se asigna de forma aleatoria en el momento del pedido. Si los quieres todos sin azar, el pack de colección completa incluye las 15.</p></details>
         <details><summary>¿Todos tienen versión dorada?</summary><p>Sí. Los 15 modelos tienen versión Gold Chrome secreta, con 1/500 de probabilidad por caja.</p></details>
-        <details><summary>¿Qué incluye cada caja?</summary><p>Figura de 7 cm en resina a color, base negra mate de 3 cm con logo SSCARS, bolsa protectora y tarjeta de colección.</p></details>
+        <details><summary>¿Qué incluye cada caja?</summary><p>Figura de 7 cm en resina a color, base negra mate de 3 cm, bolsa protectora y tarjeta de colección.</p></details>
         <details><summary>¿Cuánto cuesta el envío?</summary><p>El envío es gratuito. Recibirás el número de seguimiento por email en cuanto tu pedido salga.</p></details>
         <details><summary>¿Cuándo dejará de estar disponible?</summary><p>Cuando el contador llegue a 0, esta colección no volverá a fabricarse. Jamás.</p></details>
       </div>
@@ -488,21 +548,21 @@ footer img.flogo{width:120px;margin:0 auto 20px}
 "use strict";
 /* ================= DATA ================= */
 const MODELOS = [
-  {n:'01', name:'El Ronin de Medianoche', tag:'El que reinaba en la Wangan a las 3AM. Invencible en recta.', slug:'r34'},
-  {n:'02', name:'El Ogro de la Autopista', tag:'Apodado Godzilla por la prensa: devoraba supercars.', slug:'r32'},
-  {n:'03', name:'La Zeta Salvaje', tag:'Equilibrio perfecto de potencia y ligereza. Favorita del drift.', slug:'350z'},
-  {n:'04', name:'El Naranja Furioso', tag:'Icono del cine, alerón alto y rugido inconfundible.', slug:'supra'},
-  {n:'05', name:'El Repartidor de Tofu', tag:'Ligero como una pluma. Rey del paso de montaña.', slug:'ae86'},
-  {n:'06', name:'El Mini Exótico', tag:'Motor central: sensaciones de exótico de bolsillo.', slug:'mr2'},
-  {n:'07', name:'El Espíritu Rotativo', tag:'Motor sin pistones y un sonido agudo que enamora.', slug:'rx7'},
-  {n:'08', name:'El Samurái de Senna', tag:'Desarrollado con un campeón de F1. Precisión quirúrgica.', slug:'nsx'},
-  {n:'09', name:'El Pequeño Tipo R', tag:'1.6 litros, 185 CV y un grito hasta las 9.000 rpm.', slug:'civic'},
-  {n:'10', name:'El Grito VTEC', tag:'9.000 rpm a cielo abierto. Adrenalina pura.', slug:'s2000'},
-  {n:'11', name:'El Evolucionado', tag:'Tracción total y turbo: el rally hecho coche de calle.', slug:'evo'},
-  {n:'12', name:'El Verde Fosforito', tag:'Cupé de los 90 con turbo y tracción total. Verde imposible de ignorar.', slug:'eclipse'},
-  {n:'13', name:'El Gran Turismo', tag:'V6 biturbo y tecnología adelantada a su tiempo.', slug:'3000gt'},
-  {n:'14', name:'El 22B Azul', tag:'Edición homenaje al rally. Ensanchado y brutal.', slug:'wrc'},
-  {n:'15', name:'El Ángel Blanco', tag:'V10 atmosférico. Una obra de arte sonora.', slug:'lfa'}
+  {n:'01', name:'El Emperador Azul', tag:'Reinaba en la Wangan a las 3 de la mañana. Nadie le aguantaba el ritmo.', slug:'r34'},
+  {n:'02', name:'El Monstruo Púrpura', tag:'La prensa lo llamó monstruo: se comía coches del doble de precio.', slug:'r32'},
+  {n:'03', name:'Colmillo Azul', tag:'Equilibrio puro entre potencia y peso. La favorita del derrape.', slug:'350z'},
+  {n:'04', name:'La Bestia Naranja', tag:'Seis cilindros en línea y un alerón que se ve desde otra calle.', slug:'supra'},
+  {n:'05', name:'El Fantasma de la Montaña', tag:'Ligero, humilde y letal en el paso de montaña.', slug:'ae86'},
+  {n:'06', name:'El Exótico de Bolsillo', tag:'Motor central y sensaciones de superdeportivo por la mitad de todo.', slug:'mr2'},
+  {n:'07', name:'El Aullido Rotativo', tag:'Un motor sin pistones y un sonido agudo que no se olvida.', slug:'rx7'},
+  {n:'08', name:'El Samurái Rojo', tag:'Afinado con un campeón del mundo. Precisión de bisturí.', slug:'nsx'},
+  {n:'09', name:'El Puño Blanco', tag:'1.6 litros atmosféricos que gritan hasta las 9.000 vueltas.', slug:'civic'},
+  {n:'10', name:'El Grito Amarillo', tag:'Descapotable, atmosférico y con la zona roja más alta de su época.', slug:'s2000'},
+  {n:'11', name:'El Domador', tag:'Tracción total y turbo: el rally con matrícula de calle.', slug:'evo'},
+  {n:'12', name:'Verde Veneno', tag:'Imposible de ignorar. Color fósforo y alerón descomunal.', slug:'eclipse'},
+  {n:'13', name:'El Visionario', tag:'V6 biturbo y electrónica veinte años por delante de su tiempo.', slug:'3000gt'},
+  {n:'14', name:'El Azul del Rally', tag:'Ensanchado, llantas doradas y alma de tramo cronometrado.', slug:'wrc'},
+  {n:'15', name:'La Voz del V10', tag:'Diez cilindros atmosféricos. Más instrumento musical que coche.', slug:'lfa'}
 ];
 
 const PACKS = [
@@ -513,7 +573,7 @@ const PACKS = [
   {id:'box6', title:'Pack 6 Cajas', units:'6 unidades', qtyUnits:6, price:149.90, best:false,
    feats:['6 figuras sorpresa a color','Sin repetidos garantizado','Bases display x6','Envío gratuito']},
   {id:'full', title:'Pack Colección Completa', units:'15 unidades + bonus', qtyUnits:15, price:699.90, best:false,
-   feats:['Las 15 leyendas JDM','0 repetidos · colección 100%','2 Gold Chrome garantizados','Vitrina acrílica exclusiva','Envío gratuito']}
+   feats:['Las 15 leyendas JDM','0 repetidos · colección 100%','Vitrina acrílica exclusiva','Envío gratuito']}
 ];
 
 const eur = n => n.toFixed(2).replace('.', ',') + '€';
