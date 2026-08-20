@@ -101,3 +101,45 @@ El código ya lo soporta. A partir de ahí, cada pedido pagado dispara el envío
 2. **No vaciar** → maciza cuesta 3-4 veces más. En 500 uds son cientos de euros.
 3. **Sin agujero de drenaje** → rechazo automático en resina.
 4. **Hacer los 15 antes de tocar una muestra** → si el proveedor falla, tiras semanas de trabajo.
+
+---
+
+## ⚠️ Dónde está EXACTAMENTE el multi-foto (esto no se encuentra a la primera)
+
+El error típico es entrar en la web comercial de estas herramientas, donde solo te ofrecen texto-a-3D. El multi-vista está en otro sitio:
+
+### Opción 1 · Hunyuan3D-2mv (el que quieres)
+
+**Buscar en huggingface.co el Space:** `tencent/Hunyuan3D-2mv`
+
+Es una versión de Hunyuan3D entrenada **específicamente para multi-vista**. Dentro del Space, la clave es que **hay pestañas**: verás una llamada **"Image Prompt"** (una sola foto) y otra **"MultiView Prompt"**. Tienes que pinchar en la segunda. Ahí aparecen cuatro casillas:
+
+```
+[ Front ]  [ Back ]
+[ Left  ]  [ Right ]
+```
+
+Y ahí subes:
+- **Front** → `{slug}-tresc-frontal.webp`
+- **Back**  → `{slug}-tresc-trasera.webp`
+- **Left**  → `{slug}-lateral.webp`
+- Right     → déjalo vacío, no es obligatorio
+
+Luego pulsas **"Gen Shape"**.
+
+> Si el Space oficial está saturado o caído (pasa a menudo), busca en HuggingFace `Hunyuan3D-2mv` y verás copias del mismo Space hechas por otros usuarios. Funcionan igual.
+
+### Opción 2 · fal.ai
+Tiene el modelo `fal-ai/hunyuan3d/v2/multi-view`, que pide `front_image_url`, `back_image_url` y `left_image_url`. Es de pago por uso, pero es la vía si quieres automatizarlo por API.
+
+### Opción 3 · 3D AI Studio
+`3daistudio.com/ImageTo3D` — acepta de 2 a 4 fotos, 100 créditos gratis al mes sin tarjeta, y exporta **3MF con color**, que es justo el formato que necesitas.
+
+### ⚠️ Licencias: míralas antes de vender
+
+| Herramienta | Uso comercial |
+|---|---|
+| TRELLIS.2 | ✅ MIT, sin restricciones |
+| Hunyuan3D | ⚠️ Licencia Tencent Community: **léela antes de vender** |
+| Meshy gratis | ⚠️ CC BY 4.0, obliga a atribuir |
+| Tripo gratis | ❌ No permite uso comercial |
