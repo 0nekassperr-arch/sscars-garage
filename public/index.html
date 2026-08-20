@@ -92,21 +92,24 @@ main{padding-top:var(--head)}
 /* por debajo de 340px la barra no tiene holgura: el logo se queda como estaba */
 @media(max-width:340px){
   .logo img{width:88px}
+  .hero .l1{white-space:normal}
 }
 
 /* ================= HERO ================= */
 .hero{padding:clamp(34px,6vw,58px) 0 clamp(30px,5vw,46px)}
 .hgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:30px;align-items:center}
-@media(min-width:900px){.hgrid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:44px}}
-.hero h1{margin:12px 0 0;font-family:var(--impact);font-weight:900;text-transform:uppercase;line-height:.94;overflow-wrap:break-word}
-.hero .l1{display:block;font-size:clamp(34px,8.6vw,64px);color:var(--red)}
-.hero .l2{display:block;font-size:clamp(30px,7.6vw,64px);color:#000}
-.hero p.sub{color:var(--ink);margin:16px 0 0;font-size:16px;max-width:520px}
+@media(min-width:900px){.hgrid{grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);gap:40px}}
+.hero h1{margin:14px 0 0;font-family:var(--impact);font-weight:900;text-transform:uppercase;line-height:.88;overflow-wrap:break-word;letter-spacing:-.005em}
+.hero .l1,.hero .l2{display:block;transform:skewX(-6deg);transform-origin:left center;max-width:100%}
+.hero .l1{font-size:clamp(38px,8.4vw,66px);white-space:nowrap;color:var(--red);text-shadow:0 3px 0 rgba(0,0,0,.06)}
+.hero .l2{font-size:clamp(33px,7.4vw,60px);color:#000;position:relative}
+.hero .l2::after{content:"";display:block;width:clamp(60px,16vw,132px);height:7px;background:var(--red);margin-top:14px;border-radius:2px}
+.hero p.sub{color:#3a3a3a;margin:22px 0 0;font-size:clamp(15px,1.6vw,17.5px);max-width:540px;font-weight:500;line-height:1.6}
+.kickbar{display:inline-flex;align-items:center;gap:10px;margin:0}
+.kickbar::before{content:"";width:26px;height:3px;background:var(--red);border-radius:2px}
 .hctas{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:22px}
 .btn-ghost{border:1px solid var(--line);border-radius:999px;padding:12px 22px;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;transition:.2s;background:#fff}
 .btn-ghost:hover{border-color:#000}
-.fromprice{font-size:13px;color:var(--ink)}
-.fromprice b{font-family:var(--impact);font-size:20px;color:#000;vertical-align:-1px}
 .count{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-width:520px;margin:26px 0 0}
 .cbox{background:var(--red);color:#fff;border-radius:14px;padding:13px 4px;text-align:center;animation:pulse 2.6s ease-in-out infinite}
 .cnum{font-family:var(--impact);font-size:clamp(24px,6vw,36px);line-height:1;font-weight:900;font-variant-numeric:tabular-nums}
@@ -293,14 +296,13 @@ footer img.flogo{width:120px;margin:0 auto 20px}
     <div class="wrap">
       <div class="hgrid">
         <div>
-          <p class="kicker" style="margin:0">Colección limitada</p>
+          <p class="kicker kickbar" style="margin:0">Colección limitada</p>
           <h1><span class="l1">Leyendas JDM</span><span class="l2">15 iconos únicos</span></h1>
-          <p class="sub">Figuras de 7 cm en resina a color. Caja sorpresa: no eliges modelo y dentro del mismo pack nunca hay repetidos.</p>
+          <p class="sub">Colección limitada y exclusiva de los deportivos más legendarios e icónicos de la cultura JDM motorsport. Compra tu caja sorpresa y completa esta colección única.</p>
 
           <div class="hctas">
             <a href="#packs" class="btn-buy">Quiero mi caja</a>
             <a href="#coleccion" class="btn-ghost">Ver las 15 figuras</a>
-            <span class="fromprice">Desde <b>29,90€</b></span>
           </div>
 
           <div class="count" id="count" role="timer" aria-label="Tiempo restante de la colección">
