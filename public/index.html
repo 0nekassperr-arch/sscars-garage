@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SSCARS Garage Collections · Leyendas JDM · 15 figuras de colección</title>
-<meta name="description" content="Colección limitada de 15 figuras JDM en resina a color, 7 cm. Caja sorpresa sin repetidos dentro del pack y versión Gold Chrome secreta 1/500. Desde 29,90 € con envío gratuito.">
+<meta name="description" content="Colección limitada de 15 figuras JDM en resina a color, 7 cm. Caja sorpresa sin repetidos dentro del pack y versión Gold Chrome secreta 1/500. Desde 24,95 € con envío gratuito.">
 <link rel="canonical" href="https://sscarsgarage.roadshop.online/">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="robots" content="index,follow">
@@ -12,7 +12,7 @@
 <meta property="og:locale" content="es_ES">
 <meta property="og:site_name" content="SSCARS Garage Collections">
 <meta property="og:title" content="Leyendas JDM · 15 figuras de colección">
-<meta property="og:description" content="Caja sorpresa de figuras JDM en resina a color. Sin repetidos dentro del pack. Gold Chrome 1/500. Desde 29,90 €.">
+<meta property="og:description" content="Caja sorpresa de figuras JDM en resina a color. Sin repetidos dentro del pack. Gold Chrome 1/500. Desde 24,95 €.">
 <meta property="og:url" content="https://sscarsgarage.roadshop.online/">
 <meta property="og:image" content="https://sscarsgarage.roadshop.online/images/r34-front.webp">
 <meta name="twitter:card" content="summary_large_image">
@@ -310,6 +310,19 @@ footer img.flogo{width:120px;margin:0 auto 20px}
   .hero .l2{font-size:clamp(37px,12.4vw,56px)}
   .hero .l2::after{height:8px;margin-top:12px}
 }
+
+/* ---- poster del hero: solo escritorio ---- */
+.hbody{display:grid;grid-template-columns:minmax(0,1fr);gap:26px}
+.hero-art{display:none}
+@media(min-width:1000px){
+  .hbody{grid-template-columns:minmax(0,1fr) 330px;gap:52px;align-items:start}
+  .hero-art{display:block}
+  .hero-art img{width:100%;height:auto;border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.18)}
+}
+/* ---- poster en movil: antes de preguntas frecuentes ---- */
+.poster-mov{padding:0 0 clamp(40px,7vw,60px)}
+.poster-mov img{width:100%;max-width:520px;margin:0 auto;border-radius:22px;box-shadow:0 18px 44px rgba(0,0,0,.16)}
+@media(min-width:1000px){.poster-mov{display:none}}
 </style>
 </head>
 <body>
@@ -362,6 +375,8 @@ footer img.flogo{width:120px;margin:0 auto 20px}
 
       <h1><span class="l1">Leyendas JDM</span><span class="l2">15 iconos únicos</span></h1>
 
+      <div class="hbody">
+        <div>
       <p class="sub">Colección limitada y exclusiva de los deportivos más legendarios e icónicos de la cultura JDM motorsport. Compra tu caja sorpresa y completa esta colección única.</p>
 
       <div class="hctas">
@@ -375,6 +390,11 @@ footer img.flogo{width:120px;margin:0 auto 20px}
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 15 9l7 .6-5.3 4.6L18.3 21 12 17.3 5.7 21l1.6-6.8L2 9.6 9 9z"/></svg><span><b>Gold Chrome</b> secreto, 1 de cada 500</span></li>
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span><b>Pago seguro</b> con Stripe</span></li>
       </ul>
+        </div>
+        <div class="hero-art">
+          <img src="images/poster-r34.webp" width="507" height="900" alt="SSCARS Garage Collections" loading="eager">
+        </div>
+      </div>
     </div>
   </section>
 
@@ -476,7 +496,7 @@ footer img.flogo{width:120px;margin:0 auto 20px}
       <div class="goldrow">
         <div>
           <div class="g1">Gold Chrome</div>
-          <p class="g2" style="margin:6px 0 0">Cualquiera de los 15 puede aparecer en dorado cromado. Sustituye a la versión en color y no está garantizado en ningún pack: es puro azar.</p>
+          <p class="g2" style="margin:6px 0 0">Cualquiera de los 15 puede aparecer en dorado cromado. Sustituye a la versión en color y es puro azar en las cajas sueltas y en los packs de 3 y 6. La única excepción es el pack de colección completa, que garantiza al menos uno.</p>
         </div>
         <div style="text-align:right"><div class="g3">0,2%</div><div class="tier-s" style="color:#888">1 de cada 500</div></div>
       </div>
@@ -499,6 +519,11 @@ footer img.flogo{width:120px;margin:0 auto 20px}
     </div>
   </section>
 
+  <!-- ============ POSTER (solo movil) ============ -->
+  <section class="poster-mov">
+    <div class="wrap"><img src="images/poster-r34.webp" width="507" height="900" alt="SSCARS Garage Collections" loading="lazy"></div>
+  </section>
+
   <!-- ============ FAQ ============ -->
   <section id="faq">
     <div class="wrap">
@@ -507,7 +532,7 @@ footer img.flogo{width:120px;margin:0 auto 20px}
       <div style="margin-top:24px">
         <details open><summary>¿Puedo repetir modelo?</summary><p>Dentro del mismo pack no hay repetidos. Entre packs diferentes podrías repetir, pero el sistema intenta minimizarlo. La versión Gold Chrome sustituye a la de color.</p></details>
         <details><summary>¿Puedo elegir qué figura quiero?</summary><p>No, y esa es la gracia. El modelo se asigna de forma aleatoria en el momento del pedido. Si los quieres todos sin azar, el pack de colección completa incluye las 15.</p></details>
-        <details><summary>¿Todos tienen versión dorada?</summary><p>Sí. Los 15 modelos tienen versión Gold Chrome secreta, con 1/500 de probabilidad por caja.</p></details>
+        <details><summary>¿Todos tienen versión dorada?</summary><p>Sí. Los 15 modelos tienen versión Gold Chrome secreta, con 1/500 de probabilidad por caja. El pack de colección completa garantiza al menos uno.</p></details>
         <details><summary>¿Qué incluye cada caja?</summary><p>La figura de 7 cm en resina a color, y nada más. Viene protegida dentro de una caja completamente cerrada, sin ninguna imagen ni pista de la pieza que hay dentro: hasta que la abres, no sabes cuál te ha tocado.</p></details>
         <details><summary>¿Cuánto cuesta el envío?</summary><p>El envío es gratuito. Recibirás el número de seguimiento por email en cuanto tu pedido salga.</p></details>
         <details><summary>¿Cuándo dejará de estar disponible?</summary><p>Cuando el contador llegue a 0, esta colección no volverá a fabricarse. Jamás.</p></details>
@@ -540,7 +565,7 @@ footer img.flogo{width:120px;margin:0 auto 20px}
 
 <!-- STICKY MOBILE -->
 <div id="sticky">
-  <div class="sp">Desde<b>29,90€</b></div>
+  <div class="sp">Desde<b>24,95€</b></div>
   <a href="#coleccion" class="btn-ghost s-ghost">Ver colección</a>
   <a href="#packs" class="btn-buy s-buy">Quiero mi caja</a>
 </div>
@@ -597,14 +622,14 @@ const MODELOS = [
 ];
 
 const PACKS = [
-  {id:'box1', title:'1 Caja', units:'1 unidad', qtyUnits:1, price:29.90,  best:false,
+  {id:'box1', title:'1 Caja', units:'1 unidad', qtyUnits:1, price:24.95,  best:false,
    feats:['1 figura sorpresa a color','Caja cerrada, sin pistas','Posibilidad Gold 1/500','Envío gratuito']},
-  {id:'box3', title:'Pack 3 Cajas', units:'3 unidades', qtyUnits:3, price:79.90, best:true,
+  {id:'box3', title:'Pack 3 Cajas', units:'3 unidades', qtyUnits:3, price:69.95, best:true,
    feats:['3 figuras sorpresa a color','Sin repetidos garantizado','3 cajas cerradas sorpresa','Envío gratuito']},
-  {id:'box6', title:'Pack 6 Cajas', units:'6 unidades', qtyUnits:6, price:149.90, best:false,
+  {id:'box6', title:'Pack 6 Cajas', units:'6 unidades', qtyUnits:6, price:129.95, best:false,
    feats:['6 figuras sorpresa a color','Sin repetidos garantizado','6 cajas cerradas sorpresa','Envío gratuito']},
-  {id:'full', title:'Pack Colección Completa', units:'15 unidades + bonus', qtyUnits:15, price:699.90, best:false,
-   feats:['Las 15 leyendas JDM','0 repetidos · colección 100%','Envío gratuito']}
+  {id:'full', title:'Pack Colección Completa', units:'15 unidades + bonus', qtyUnits:15, price:669.95, best:false,
+   feats:['Las 15 leyendas JDM','0 repetidos · colección 100%','Al menos 1 Gold Chrome garantizado','Envío gratuito']}
 ];
 
 const eur = n => n.toFixed(2).replace('.', ',') + '€';
@@ -850,8 +875,8 @@ tick(); setInterval(tick, 1000);
   "offers":{
     "@type":"AggregateOffer",
     "priceCurrency":"EUR",
-    "lowPrice":"29.90",
-    "highPrice":"699.90",
+    "lowPrice":"24.95",
+    "highPrice":"669.95",
     "offerCount":"4",
     "availability":"https://schema.org/InStock",
     "url":"https://sscarsgarage.roadshop.online/#packs",
@@ -866,7 +891,7 @@ tick(); setInterval(tick, 1000);
   "mainEntity":[
     {"@type":"Question","name":"¿Puedo repetir modelo?","acceptedAnswer":{"@type":"Answer","text":"Dentro del mismo pack no hay repetidos. Entre packs diferentes podrías repetir, pero el sistema intenta minimizarlo."}},
     {"@type":"Question","name":"¿Puedo elegir qué figura quiero?","acceptedAnswer":{"@type":"Answer","text":"No. El modelo se asigna de forma aleatoria en el momento del pedido. El pack de colección completa incluye las 15."}},
-    {"@type":"Question","name":"¿Todos tienen versión dorada?","acceptedAnswer":{"@type":"Answer","text":"Sí, los 15 modelos tienen versión Gold Chrome secreta con 1/500 de probabilidad por caja."}},
+    {"@type":"Question","name":"¿Todos tienen versión dorada?","acceptedAnswer":{"@type":"Answer","text":"Sí, los 15 modelos tienen versión Gold Chrome secreta con 1/500 de probabilidad por caja. El pack de colección completa garantiza al menos uno."}},
     {"@type":"Question","name":"¿Cuánto cuesta el envío?","acceptedAnswer":{"@type":"Answer","text":"El envío es gratuito."}}
   ]
 }

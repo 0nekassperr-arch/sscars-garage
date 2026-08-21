@@ -52,8 +52,14 @@ export function elegirSinRepes(cantidad, { packFull = false } = {}) {
     out.push(sacarUno(pool));
   }
 
-  // El pack completo entrega los 15; el dorado sigue siendo azar puro, nunca garantizado.
-  return out.map(m => ({ ...m, esGold: Math.random() < GOLD_PROB }));
+  const conGold = out.map(m => ({ ...m, esGold: Math.random() < GOLD_PROB }));
+
+  // El pack de coleccion completa garantiza AL MENOS un Gold Chrome.
+  // Si el azar no ha dado ninguno, se fuerza uno al azar entre las figuras del pedido.
+  if (packFull && !conGold.some(f => f.esGold)) {
+    conGold[Math.floor(Math.random() * conGold.length)].esGold = true;
+  }
+  return conGold;
 }
 
 const MODEL_EXT = process.env.MODEL_EXT || 'stl';
