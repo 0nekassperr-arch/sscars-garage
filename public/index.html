@@ -311,13 +311,16 @@ footer img.flogo{width:120px;margin:0 auto 20px}
   .hero .l2::after{height:8px;margin-top:12px}
 }
 
-/* ---- poster del hero: solo escritorio ---- */
-.hbody{display:grid;grid-template-columns:minmax(0,1fr);gap:26px}
+/* ---- poster del hero: solo escritorio, alineado arriba ---- */
 .hero-art{display:none}
 @media(min-width:1000px){
-  .hbody{grid-template-columns:minmax(0,1fr) 330px;gap:52px;align-items:start}
-  .hero-art{display:block}
+  .hwrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:48px;align-items:start}
+  .hero-main{min-width:0}
+  .hero-art{display:block;margin-top:0}
   .hero-art img{width:100%;height:auto;border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.18)}
+  /* el titular comparte fila con el poster: se ajusta para caber en una linea */
+  .hero .l1{font-size:clamp(38px,6.4vw,84px)}
+  .hero .l2{font-size:clamp(33px,5.7vw,75px)}
 }
 /* ---- poster en movil: antes de preguntas frecuentes ---- */
 .poster-mov{padding:0 0 clamp(40px,7vw,60px)}
@@ -362,7 +365,8 @@ footer img.flogo{width:120px;margin:0 auto 20px}
 
   <!-- ============ HERO ============ -->
   <section class="hero">
-    <div class="wrap">
+    <div class="wrap hwrap">
+      <div class="hero-main">
       <p class="kicker kickbar" style="margin:0">Colección limitada</p>
 
       <div class="count" id="count" role="timer" aria-label="Tiempo restante de la colección">
@@ -375,8 +379,6 @@ footer img.flogo{width:120px;margin:0 auto 20px}
 
       <h1><span class="l1">Leyendas JDM</span><span class="l2">15 iconos únicos</span></h1>
 
-      <div class="hbody">
-        <div>
       <p class="sub">Colección limitada y exclusiva de los deportivos más legendarios e icónicos de la cultura JDM motorsport. Compra tu caja sorpresa y completa esta colección única.</p>
 
       <div class="hctas">
@@ -390,10 +392,9 @@ footer img.flogo{width:120px;margin:0 auto 20px}
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 15 9l7 .6-5.3 4.6L18.3 21 12 17.3 5.7 21l1.6-6.8L2 9.6 9 9z"/></svg><span><b>Gold Chrome</b> secreto, 1 de cada 500</span></li>
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span><b>Pago seguro</b> con Stripe</span></li>
       </ul>
-        </div>
-        <div class="hero-art">
-          <img src="images/poster-r34.webp" width="507" height="900" alt="SSCARS Garage Collections" loading="eager">
-        </div>
+      </div>
+      <div class="hero-art">
+        <img src="images/poster-r34.webp" width="507" height="900" alt="SSCARS Garage Collections" loading="eager">
       </div>
     </div>
   </section>
