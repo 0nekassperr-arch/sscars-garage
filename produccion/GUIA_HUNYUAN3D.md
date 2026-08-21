@@ -4,15 +4,18 @@
 
 Tienes **47 imágenes en 15 carpetas**, una por modelo. Cada carpeta lleva las 3 vistas que el modelo multi-vista necesita:
 
-| Vista | Fichero | Para qué sirve |
+### ⚠️ LO MÁS IMPORTANTE: las vistas tienen que ser ORTOGONALES
+
+El modelo multi-vista **no admite fotos en semiperfil**. Cada casilla espera una vista perpendicular:
+
+| Casilla | Qué espera | Fichero |
 |---|---|---|
-| ¾ frontal | `{slug}-tresc-frontal.webp` | Morro, capó, faros |
-| ¾ trasera | `{slug}-tresc-trasera.webp` | Cola, alerón, escape |
-| Lateral | `{slug}-lateral.webp` | Silueta y longitud |
+| **Front** | El coche visto **de frente**, en perpendicular | `1-FRONT.webp` |
+| **Back** | El coche visto **de espaldas**, en perpendicular | `2-BACK.webp` |
+| **Left** | Perfil izquierdo a 90° | `3-LEFT.webp` |
+| **Right** | Perfil derecho a 90° | `4-RIGHT.webp` |
 
-El R34 lleva además vista frontal recta y cenital: es el que más calidad dará y por eso conviene empezar por él.
-
-**Con 3 vistas es suficiente.** El modelo acepta hasta 4 y la cuarta (derecha) es opcional; como los coches son casi simétricos, aporta poco.
+Si metes una foto a 45° en la casilla *Front*, la IA cree que eso es lo que se ve desde delante, lo cruza con el perfil y **la malla sale derretida**. Es el error más común y el más difícil de diagnosticar.
 
 ---
 
