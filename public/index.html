@@ -232,6 +232,26 @@ main{padding-top:var(--head)}
 .payrow{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;align-items:center;margin-top:28px;color:#777;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .payrow span{display:inline-flex;align-items:center;gap:7px}
 
+/* ================= HISTORIA ================= */
+.historia{background:var(--grey)}
+.hlist{margin-top:30px}
+.historia details{border:1px solid var(--line);border-radius:18px;margin-bottom:14px;overflow:hidden;background:#fff;transition:border-color .2s,box-shadow .25s}
+.historia details[open]{border-color:#000;box-shadow:0 18px 44px rgba(0,0,0,.08)}
+.historia summary{padding:18px 20px;display:flex;align-items:center;gap:14px;list-style:none;cursor:pointer}
+.historia summary::-webkit-details-marker{display:none}
+.historia summary::after{content:"+";font-family:var(--impact);font-size:26px;color:var(--red);margin-left:auto;flex:0 0 auto}
+.historia details[open] summary::after{content:"–"}
+.hnum{font-family:var(--impact);font-size:15px;letter-spacing:.06em;background:#000;color:#fff;border-radius:999px;padding:6px 12px;flex:0 0 auto}
+.hname{font-weight:800;font-size:16px;line-height:1.2}
+.hname em{display:block;font-style:normal;font-weight:700;font-size:12.5px;color:#888;letter-spacing:.04em;text-transform:uppercase;margin-top:3px}
+.hbody{display:grid;grid-template-columns:minmax(0,1fr);gap:0;border-top:1px solid var(--line)}
+@media(min-width:820px){.hbody{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}}
+.hbody .hpic{position:relative;aspect-ratio:16/9;background:#000;overflow:hidden}
+.hbody .hpic img{width:100%;height:100%;object-fit:cover;display:block}
+.hbody .htext{padding:22px 24px;display:flex;flex-direction:column;justify-content:center}
+.hbody .htext p{margin:0;font-size:15.5px;line-height:1.75;color:#333}
+.hbody .htext p::first-letter{font-family:var(--impact);font-size:30px;color:var(--red);float:left;line-height:1;padding:4px 6px 0 0}
+
 /* ================= FAQ ================= */
 details{border-bottom:1px solid var(--line);padding:18px 0}
 summary{list-style:none;cursor:pointer;font-weight:800;font-size:16px;display:flex;justify-content:space-between;gap:16px;align-items:center}
@@ -356,6 +376,7 @@ footer img.flogo{width:120px;margin:0 auto 20px}
     <a href="#gold">Gold Chrome</a>
     <a href="#rareza">Probabilidades</a>
     <a href="#packs">Packs y precios</a>
+    <a href="#historia">Historia de estos iconos</a>
     <a href="#faq">Preguntas frecuentes</a>
   </nav>
 </div>
@@ -523,6 +544,122 @@ footer img.flogo{width:120px;margin:0 auto 20px}
   <!-- ============ POSTER (solo movil) ============ -->
   <section class="poster-mov">
     <div class="wrap"><img src="images/poster-r34.webp" width="507" height="900" alt="SSCARS Garage Collections" loading="lazy"></div>
+  </section>
+
+  <!-- ============ HISTORIA ============ -->
+  <section id="historia" class="historia">
+    <div class="wrap">
+      <p class="kicker" style="margin:0">Historia de estos iconos</p>
+      <h2 class="big">La leyenda que <span class="red">los hizo eternos</span></h2>
+      <p class="lead">Antes de ser figuras de colección, fueron los coches que dominaron las autopistas de la Wangan, los puertos de montaña del touge y los clubes de carreras ilegales como los Midnight Club. Estos son los originales que una generación soñó con conducir.</p>
+      <div class="hlist">
+        <details>
+          <summary><span class="hnum">01</span><span class="hname">El Emperador Azul<em>Nissan Skyline GT-R R34 · 1999</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/r34.webp" width="1280" height="720" alt="Nissan Skyline GT-R R34" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>El «Godzilla» definitivo. Con su RB26 biturbo y el sistema de tracción ATTESA E-TS, el R34 se convirtió en el rey absoluto de la Wangan y de los Midnight Club de Tokio: se decía que reinaba en la autopista a las 3 de la mañana, cuando nadie se atrevía a plantarle cara. El último gran GT-R de la era dorada, nacido para correr de noche y no mirar atrás.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">02</span><span class="hname">El Monstruo Púrpura<em>Nissan Skyline GT-R R32 · 1989</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/r32.webp" width="1280" height="720" alt="Nissan Skyline GT-R R32" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Resucitó la leyenda GT-R tras dieciséis años de silencio y arrasó en el Grupo A con tanta autoridad que la prensa lo bautizó «Godzilla». Ganaba con tal facilidad que los campeonatos cambiaron las reglas solo para frenarlo. En su acabado Midnight Purple, es pura intimidación rodando por la C1 de Tokio a más de 250 km/h.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">03</span><span class="hname">Colmillo Azul<em>Nissan 350Z · 2002</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/350z.webp" width="1280" height="720" alt="Nissan 350Z" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>El Z que devolvió el equilibrio entre potencia y peso. Su V6 VQ35DE, fiable hasta el aburrimiento, lo convirtió en la base favorita del drift: asequible de preparar y con un reparto de pesos perfecto para enlazar curvas de costado. En los tandems de derrape japoneses, pocos nombres suenan tanto como el Z33.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">04</span><span class="hname">La Bestia Naranja<em>Toyota Supra MK4 · 1993</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/supra.webp" width="1280" height="720" alt="Toyota Supra MK4" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>El 2JZ-GTE es, sencillamente, el seis cilindros más venerado del tuning: aguanta el doble o el triple de su potencia de serie sin pestañear. En la Wangan y en las drag races ilegales de la bahía de Tokio, un Supra bien afinado era sentencia de muerte. Su alerón se veía venir desde dos calles de distancia.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">05</span><span class="hname">El Fantasma de la Montaña<em>Toyota AE86 Sprinter Trueno · 1983</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/ae86.webp" width="1280" height="720" alt="Toyota AE86 Sprinter Trueno" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>El «Hachi-Roku». No era el más potente, pero pesaba nada, empujaba con las ruedas traseras y se bailaba en el touge como ninguno. Se hizo leyenda en los puertos de montaña japoneses, donde la técnica vence a la potencia. Ligero, humilde y letal: el coche que enseñó al mundo que el derrape es un arte.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">06</span><span class="hname">El Exótico de Bolsillo<em>Toyota MR2 SW20 · 1989</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/mr2.webp" width="1280" height="720" alt="Toyota MR2" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Motor central, tracción trasera y sensaciones de superdeportivo por la mitad de todo. El «Ferrari de bolsillo» llevó la emoción de los grandes exóticos a la calle. En carreteras de montaña, su comportamiento de coche de motor central lo hacía distinto a todo lo demás de su época.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">07</span><span class="hname">El Aullido Rotativo<em>Mazda RX-7 FD3S · 1991</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/rx7.webp" width="1280" height="720" alt="Mazda RX-7 FD3S" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Un motor sin pistones. El rotativo 13B-REW giraba tan alto y sonaba tan agudo que no se confunde con nada: un aullido que sube y sube hasta el límite. Ligero, equilibrado y exótico, el FD es una pieza de ingeniería que Mazda jamás ha vuelto a repetir. Una reliquia de los clubes de carreras nocturnos.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">08</span><span class="hname">El Samurái Rojo<em>Honda NSX · 1990</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/nsx.webp" width="1280" height="720" alt="Honda NSX" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Honda quiso demostrar que un superdeportivo podía ser fiable, utilizable a diario y preciso como un bisturí, y contó con Ayrton Senna en su puesta a punto. El primer «supercoche de todos los días», construido en aluminio y afinado junto a un campeón del mundo. Equilibrio puro.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">09</span><span class="hname">El Puño Blanco<em>Honda Civic EK9 Type R · 1997</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/civic.webp" width="1280" height="720" alt="Honda Civic EK9 Type R" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Un 1.6 atmosférico que grita hasta las 9.000 revoluciones. El VTEC del B16B convierte cada subida de vueltas en una celebración. El EK9 demostró que un utilitario japonés, bien afinado, podía humillar a coches con el doble de cilindros en cualquier circuito. Puro espíritu de los Kanjo Runners de Osaka.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">10</span><span class="hname">El Grito Amarillo<em>Honda S2000 · 1999</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/s2000.webp" width="1280" height="720" alt="Honda S2000" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Descapotable, atmosférico y con la zona roja más alta de su época: 9.000 rpm que se clavan en la memoria. Su motor F20C logró la mayor potencia específica de un atmosférico de producción de su tiempo. Un roadster puro, hecho para escuchar el motor a cielo abierto.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">11</span><span class="hname">El Domador<em>Mitsubishi Lancer Evolution · 1992</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/evo.webp" width="1280" height="720" alt="Mitsubishi Lancer Evolution" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Nacido para homologar el Grupo A del Mundial de Rallies, llegó a la calle con tracción total, turbo y un hambre de curvas descomunal. Los títulos de Tommi Mäkinen convirtieron al Lancer Evolution en sinónimo de dominar cualquier carretera, llueva o no. El rally con matrícula de calle.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">12</span><span class="hname">Verde Veneno<em>Mitsubishi Eclipse · 1995</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/eclipse.webp" width="1280" height="720" alt="Mitsubishi Eclipse" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Imposible de ignorar. Con su 4G63 turbo y ese verde fósforo de alerón descomunal, el Eclipse de segunda generación es la cara más reconocible del tuning de los 2000. Protagonista de la película que metió el JDM en los dormitorios de medio mundo y disparó el sueño de la caja de cambios que salta de marcha.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">13</span><span class="hname">El Visionario<em>Mitsubishi 3000GT VR-4 · 1990</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/3000gt.webp" width="1280" height="720" alt="Mitsubishi 3000GT VR-4" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>V6 biturbo, tracción total, aerodinámica activa, suspensión ajustable y hasta dirección en las cuatro ruedas: tecnología que parecía ciencia ficción veinte años antes que nadie. El 3000GT fue la apuesta más ambiciosa de Mitsubishi, un adelantado a su tiempo que hoy se revaloriza como el icono que siempre fue.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">14</span><span class="hname">El Azul del Rally<em>Subaru Impreza WRX STI · 1992</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/wrc.webp" width="1280" height="720" alt="Subaru Impreza WRX STI" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Azul rally, llantas doradas y el rugido del motor bóxer. De la mano de Colin McRae, el Impreza escribió la página más gloriosa del rally japonés. Ensanchado y con alma de tramo cronometrado, es el coche que hizo soñar a una generación entera con volar entre los árboles.</p></div>
+          </div>
+        </details>
+        <details>
+          <summary><span class="hnum">15</span><span class="hname">La Voz del V10<em>Lexus LFA · 2010</em></span></summary>
+          <div class="hbody">
+            <div class="hpic"><img src="images/historia/lfa.webp" width="1280" height="720" alt="Lexus LFA" loading="lazy" decoding="async"></div>
+            <div class="htext"><p>Diez cilindros atmosféricos cuyo sonido fue afinado junto a los ingenieros de Yamaha para rugir como un Fórmula 1. 552 caballos y un motor que sube de 0 a 9.000 rpm en un suspiro. Más que un coche, el LFA es un instrumento musical. Solo se fabricaron 500 unidades. La despedida más perfecta de una era.</p></div>
+          </div>
+        </details>
+      </div>
+    </div>
   </section>
 
   <!-- ============ FAQ ============ -->
