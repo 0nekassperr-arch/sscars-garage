@@ -252,6 +252,18 @@ main{padding-top:var(--head)}
 .hbody .htext p{margin:0;font-size:15.5px;line-height:1.75;color:#333}
 .hbody .htext p::first-letter{font-family:var(--impact);font-size:30px;color:var(--red);float:left;line-height:1;padding:4px 6px 0 0}
 
+/* ---- master: toda la seccion se despliega con un CTA ---- */
+.hmaster{border:0;background:transparent;border-radius:0;margin:26px 0 0;overflow:visible;box-shadow:none}
+.hmaster > summary{display:block;text-align:center;padding:0;border:0;list-style:none;cursor:pointer;font-weight:800;font-size:16px}
+.hmaster > summary::after{display:none}
+.hcta{display:inline-flex;align-items:center;gap:12px;background:var(--red);color:#fff;font-weight:900;font-size:15px;letter-spacing:.04em;text-transform:uppercase;padding:18px 36px;border-radius:999px;transition:transform .2s,background .2s,box-shadow .2s;box-shadow:0 12px 30px rgba(255,26,26,.28)}
+.hcta::after{content:"+";font-family:var(--impact);font-size:24px;line-height:1;color:#fff}
+.hcta:hover{transform:translateY(-2px);background:#e00}
+.hmaster[open] .hcta{background:#000;box-shadow:0 12px 30px rgba(0,0,0,.2)}
+.hmaster[open] .hcta::after{content:"–"}
+.hmaster > .lead{margin-top:24px}
+.hmaster .hlist{margin-top:26px}
+
 /* ================= FAQ ================= */
 details{border-bottom:1px solid var(--line);padding:18px 0}
 summary{list-style:none;cursor:pointer;font-weight:800;font-size:16px;display:flex;justify-content:space-between;gap:16px;align-items:center}
@@ -551,8 +563,10 @@ footer img.flogo{width:120px;margin:0 auto 20px}
     <div class="wrap">
       <p class="kicker" style="margin:0">Historia de estos iconos</p>
       <h2 class="big">La leyenda que <span class="red">los hizo eternos</span></h2>
-      <p class="lead">Antes de ser figuras de colección, fueron los coches que dominaron las autopistas de la Wangan, los puertos de montaña del touge y los clubes de carreras ilegales como los Midnight Club. Estos son los originales que una generación soñó con conducir.</p>
-      <div class="hlist">
+      <details class="hmaster">
+        <summary><span class="hcta">Desplegar toda la historia</span></summary>
+        <p class="lead">Antes de ser figuras de colección, fueron los coches que dominaron las autopistas de la Wangan, los puertos de montaña del touge y los clubes de carreras ilegales como los Midnight Club. Estos son los originales que una generación soñó con conducir.</p>
+        <div class="hlist">
         <details>
           <summary><span class="hnum">01</span><span class="hname">El Emperador Azul<em>Nissan Skyline GT-R R34 · 1999</em></span></summary>
           <div class="hbody">
@@ -659,6 +673,7 @@ footer img.flogo{width:120px;margin:0 auto 20px}
           </div>
         </details>
       </div>
+      </details>
     </div>
   </section>
 
@@ -1000,6 +1015,16 @@ function tick(){
   }
 }
 tick(); setInterval(tick, 1000);
+
+/* ================= HISTORIA: cambiar texto del CTA maestro ================= */
+const hm = document.querySelector('.hmaster');
+if (hm){
+  const cta = hm.querySelector('.hcta');
+  hm.addEventListener('toggle', () => {
+    cta.textContent = hm.open ? 'Cerrar la historia' : 'Desplegar toda la historia';
+  });
+}
+
 </script>
 
 <script type="application/ld+json">
