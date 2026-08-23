@@ -106,7 +106,9 @@ Cuentas a crear (gratis, ~5 min cada una) y variables a pegar en Vercel
    evento `checkout.session.completed`.
 3. **Upstash** (idempotencia) → `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
 4. **Resend** (avisos por email) → `RESEND_API_KEY`, `ALERT_EMAIL`, `FROM_EMAIL`.
-5. **JLC3DP** (o tu POD) → `JLC_API_KEY`, `STL_BASE_URL`, `MODEL_EXT=3mf`.
+5. **JLC3DP** (o tu POD) → `FABRICANTE` (proveedor a usar), `JLC_API_KEY`, `STL_BASE_URL`, `MODEL_EXT=3mf`.
+   El código ya trae un adaptador por proveedor en `api/fabricacion.js`; añadir otro es copiar
+   un bloque y elegirlo con `FABRICANTE`.
 6. **Admin** → `ADMIN_KEY` (cadena larga aleatoria) para `/api/admin?key=…`.
 
 Guía de referencia: `SSCARS_GARAGE_FINAL.md` (§4 Deploy) y `AUDITORIA.md` (§4 checklist).

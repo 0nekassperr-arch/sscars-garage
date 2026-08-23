@@ -1,34 +1,9 @@
 import Stripe from 'stripe';
-import { claimOnce, logOrder, fetchRetry, notify } from './_lib.js';
+import { claimOnce, logOrder, notify } from './_lib.js';
 import { elegirSinRepes } from './sorteo.js';
+import { pedirAFabrica } from './fabricacion.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' });
-
-const MODEL_EXT = process.env.MODEL_EXT || 'stl';
-const stlUrl = (slug, gold) => `${process.env.STL_BASE_URL}/${slug}${gold ? '-gold' : ''}.${MODEL_EXT}`;
-
-async function pedirAFabrica(figura, direccion, orderId) {
-  if (!process.env.JLC_API_KEY || !process.env.STL_BASE_URL) {
-    return { ok: false, motivo: 'API de fabricación no configurada (modo manual)' };
-  }
-  try {
-    await fetchRetry('https://api.jlc3dp.com/api/order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Api-Key': process.env.JLC_API_KEY },
-      body: JSON.stringify({
-        files: [{ url: stlUrl(figura.slug, figura.esGold) }],
-        shipping_address: direccion,
-        shipping_method: 'DHL',
-        packaging: 'plain_box_no_logo',
-        material: 'X Resin',
-        notes: `SSCARS ${figura.n} ${figura.name}${figura.esGold ? ' GOLD' : ''} · ${orderId}`
-      })
-    });
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, motivo: e.message };
-  }
-}
 
 async function rawBody(req) {
   const chunks = [];

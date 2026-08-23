@@ -69,7 +69,7 @@ Sin duplicados: cada modelo usa exclusivamente su propia trasera (el 02 nunca mu
 - **Grid de 15 productos:** delantera primero, crossfade a trasera en hover (desktop) y botón `Ver trasera / Ver frente` en móvil. Click en la foto → modal con delantera + trasera lado a lado, cierre con ✕, overlay o `ESC`.
 - **ACABADO A COLOR:** texto corto (sin “pintado a mano”) + 3 bullets (resina a color / caja sorpresa / base negra).
 - **GOLD CHROME:** ejemplo con las dos fotos doradas + “versión dorada cromada secreta, 1/500 por caja”.
-- **Packs:** 29,90 € / 79,90 € (3 cajas, badge MÁS VENDIDO, 3 unidades) / 149,90 € (6 unidades) / 699,90 € (colección completa). Precio en Impact 48 px, tarjetas 1 px #E5E5E5, radio 20, padding 32.
+- **Packs:** 24,95 € / 69,95 € (3 cajas, badge MÁS VENDIDO, 3 unidades) / 129,95 € (6 unidades) / 669,95 € (colección completa). Precio en Impact 48 px, tarjetas 1 px #E5E5E5, radio 20, padding 32.
 - **Envíos:** solo “Envíos gratis”, sin plazos ni ciudad.
 - **FAQ** + **footer blanco centrado** con logo 120 px, iconos SVG (Instagram, Threads, TikTok, YouTube) con hover rojo y el texto legal de no afiliación.
 - **Carrito:** localStorage (`sscars_cart_v1`), badge, drawer derecho, +/− cantidades, total, botón **Comprar** → `/api/checkout`.
@@ -80,7 +80,7 @@ Sin duplicados: cada modelo usa exclusivamente su propia trasera (el 02 nunca mu
 
 1. `git init && git add . && git commit -m "SSCARS V6" && git push` a un repo nuevo de GitHub.
 2. Vercel → **Import Project** → Framework: **Other** (ya lo resuelve `vercel.json`, output `public`).
-3. Stripe → crea 4 precios de pago único: 29,90 € / 79,90 € / 149,90 € / 699,90 € y copia sus `price_...`.
+3. Stripe → crea 4 precios de pago único: 24,95 € / 69,95 € / 129,95 € / 669,95 € y copia sus `price_...`.
 4. Vercel → Settings → Environment Variables:
    `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_BOX1`, `STRIPE_PRICE_BOX3`, `STRIPE_PRICE_BOX6`, `STRIPE_PRICE_FULL`, `JLC_API_KEY`, `STL_BASE_URL`.
 5. Stripe → Webhooks → endpoint `https://sscarsgarage.roadshop.online/api/order`, evento `checkout.session.completed`.
