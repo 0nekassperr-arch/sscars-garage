@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Sitemap: https://sscarsgarage.roadshop.online/sitemap.xml
+Sitemap: https://sscarsgarage.vercel.app/sitemap.xml

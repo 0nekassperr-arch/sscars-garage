@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SSCARS Garage Collections · Leyendas JDM · 15 figuras de colección</title>
 <meta name="description" content="Colección limitada de 15 figuras JDM en resina a color, 7 cm. Caja sorpresa sin repetidos dentro del pack y versión Gold Chrome secreta 1/500. Desde 24,95 € con envío gratuito.">
-<link rel="canonical" href="https://sscarsgarage.roadshop.online/">
+<link rel="canonical" href="https://sscarsgarage.vercel.app/">
 <meta name="theme-color" content="#FFFFFF">
 <meta name="robots" content="index,follow">
 <meta property="og:type" content="website">
@@ -13,8 +13,8 @@
 <meta property="og:site_name" content="SSCARS Garage Collections">
 <meta property="og:title" content="Leyendas JDM · 15 figuras de colección">
 <meta property="og:description" content="Caja sorpresa de figuras JDM en resina a color. Sin repetidos dentro del pack. Gold Chrome 1/500. Desde 24,95 €.">
-<meta property="og:url" content="https://sscarsgarage.roadshop.online/">
-<meta property="og:image" content="https://sscarsgarage.roadshop.online/images/r34-front.webp">
+<meta property="og:url" content="https://sscarsgarage.vercel.app/">
+<meta property="og:image" content="https://sscarsgarage.vercel.app/images/r34-front.webp">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="images/logo-sscars-cropped.jpg">
 <link rel="preload" as="image" href="images/r34-front.webp" fetchpriority="high">
@@ -787,7 +787,7 @@ const PACKS = [
 
 const eur = n => n.toFixed(2).replace('.', ',') + '€';
 /* En GitHub Pages no hay backend: el pago sólo funciona en el dominio de Vercel. */
-const API_BASE = location.hostname.endsWith('github.io') ? 'https://sscarsgarage.roadshop.online' : '';
+const API_BASE = location.hostname.endsWith('github.io') ? 'https://sscarsgarage.vercel.app' : '';
 const $ = s => document.querySelector(s);
 
 /* ================= GRID ================= */
@@ -1033,7 +1033,7 @@ if (hm){
   "@type":"Product",
   "name":"SSCARS Garage Collections · Leyendas JDM",
   "description":"Caja sorpresa con figura JDM de colección en resina a color de 7 cm. 15 modelos, sin repetidos dentro del pack y versión Gold Chrome 1/500.",
-  "image":["https://sscarsgarage.roadshop.online/images/r34-front.webp"],
+  "image":["https://sscarsgarage.vercel.app/images/r34-front.webp"],
   "brand":{"@type":"Brand","name":"SSCARS Garage Collections"},
   "offers":{
     "@type":"AggregateOffer",
@@ -1042,7 +1042,7 @@ if (hm){
     "highPrice":"669.95",
     "offerCount":"4",
     "availability":"https://schema.org/InStock",
-    "url":"https://sscarsgarage.roadshop.online/#packs",
+    "url":"https://sscarsgarage.vercel.app/#packs",
     "shippingDetails":{"@type":"OfferShippingDetails","shippingRate":{"@type":"MonetaryAmount","value":"0","currency":"EUR"}}
   }
 }
