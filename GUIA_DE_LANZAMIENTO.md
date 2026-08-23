@@ -30,21 +30,25 @@ blender --background --python produccion/blender/preparar_figura.py -- {slug}.gl
 
 ## 3 · Proveedor POD (la decisión clave de costes)
 
-Elige el tipo de figura según el margen (precios de la web: 24,95 / 69,95 / 129,95 / 669,95 €):
+Precios de venta de la web: 24,95 / 69,95 / 129,95 / 669,95 € · Envío **gratuito** (lo absorbe
+el negocio, ~7 €/pedido, ya incluido en los márgenes de abajo). Márgenes **antes** de comisiones
+de Stripe (~1,5 % + 0,25 €/pedido) y antes de empaquetado.
 
-**A. Resina MONO (JLC3DP) — figura de UN color por modelo (estilo Funko)**
-- Coste: **~4-5 € pieza + ~7 € envío** → margen ≈ **13 €** (1 caja) / **48 €** (pack 3) /
-  **93 €** (pack 6) / **590 €** (completo). ✅ Cuadra con el precio.
-- La web debe mostrar la figura de un solo color por modelo (se actualiza).
-- API: la Ordering API de JLC3DP acepta **STL/OBJ/3MF** pero hay que **solicitarla**
-  (jlc3dp.com/help/article/jlc3dp-api). Hasta entonces: **cumplimiento MANUAL**
-  (panel `/api/admin` → subes el 3MF → envías) — perfecto para lanzar.
-- [ ] Si vas con mono → yo ajusto la web y dejamos `FABRICANTE=jlc3dp`.
+| Opción | Coste figura | Margen 1 caja (24,95 €) | Pack 3 (69,95 €) | Pack 6 (129,95 €) | Completo (669,95 €) | Inversión extra |
+|---|---|---|---|---|---|---|
+| **A. MONO (JLC3DP)** — figura de un color por modelo | 1,5-5 € + 7 € | **13-16 €** ✅ | **48-58 €** ✅ | **93-114 €** ✅ | **588-640 €** ✅ | **0 € (lanzas ya)** |
+| **B. Full-color POD** (Printeers/Marketiger) | 15-35 € + 7 € | **-17 a +3 €** ❌ | pérdida ❌ | pérdida ❌ | 138-438 € ✅ | 0 € pero no cuadra |
+| **C. Full-color China** (Alibaba, MOQ 300-500) | 1,5-3 € + 7 € | ~15-16 € ✅ | ~54-58 € ✅ | ~105-114 € ✅ | ~618-640 € ✅ | MOQ + 900-3.000 € (1-2 modelos) |
+| **D. Híbrido** (mono + pintar detalles) | 5-10 € + 7 € | 8-13 € ⚠️ | 33-48 € ✅ | 63-93 € ✅ | 513-588 € ✅ | Pintado manual (no escala) |
 
-**B. Full-color premium — solo viable con fábrica china a escala**
-- POD full-color: 15-35 €/ud → **no cuadra** a 24,95 € (solo en el pack de 669,95 €).
-- China (Alibaba): 1,5-3 €/ud pintada, MOQ 300-500/modelo → cuando haya volumen validado.
-- [ ] Si eliges esta vía → **Printeers** o **Marketiger3D** para la preventa del pack completo.
+**Lectura honesta:**
+- **A (mono)** es la única que cuadra **hoy** con tus precios y sin inversión. El coste real de
+  JLC3DP se confirma con **1 muestra física** (pedido de prueba): el margen exacto está entre
+  13 y 16 € por caja.
+- **B (full-color POD)** no cuadra salvo en el pack completo (669,95 €) — solo para preventa premium.
+- **C (China)** tiene el mejor margen a color, pero exige MOQ e inversión; se hace **después**
+  de validar demanda con A.
+- La **versión dorada (Gold Chrome 1/500)** funciona en todas: resina dorada o pintado.
 
 > Regla: pide presupuesto con `produccion/EMAIL_RFQ.md` adjuntando el 3MF + fotos, y
 > **pide 1 muestra física** antes de firmar nada.
