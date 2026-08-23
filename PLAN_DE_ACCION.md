@@ -48,6 +48,13 @@ Mapa único de "dónde estamos y qué toca ahora". Fuente de verdad: este reposi
 - Detalle completo del flujo (Blender, vaciado, drenaje, exportar 3MF):
   `produccion/EMPIEZA_AQUI.md` y `produccion/FLUJO_GRATIS.md`.
 
+> 🤖 **Automatización opcional (Blender headless):** cuando tengas el GLB bueno, el
+> script `produccion/blender/preparar_figura.py` hace solo el escalado a 70 mm, la
+> reparación manifold, el ahuecado a 2 mm, el agujero de drenaje de 4 mm y exporta
+> STL + OBJ/MTL + 3MF:
+> `blender --background --python preparar_figura.py -- modelo.glb r34 70`
+> Si prefieres hacerlo a mano (más control visual), sigue `EMPIEZA_AQUI.md` paso a paso.
+
 > ⚠️ Licencia comercial: TRELLIS.2 = MIT (ok). Hunyuan/Tripo/Meshy gratis = leer
 > condiciones antes de vender (tabla en `produccion/FLUJO_GRATIS.md`).
 
