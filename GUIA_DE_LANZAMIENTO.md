@@ -53,6 +53,22 @@ de Stripe (~1,5 % + 0,25 €/pedido) y antes de empaquetado.
 > Regla: pide presupuesto con `produccion/EMAIL_RFQ.md` adjuntando el 3MF + fotos, y
 > **pide 1 muestra física** antes de firmar nada.
 
+## 3b · Kit de pintura (upsell, 1 solo SKU)
+
+Recomendado como **añadido** a un pedido de figura, no como producto suelto con envío gratis.
+
+- **Contenido:** imprimación 10 ml + acrílicos dorado/rojo/negro 10 ml + 2 pinceles + guía (QR).
+- **Coste:** ~2-3 € (acrílicos y pinceles genéricos).
+- **Precio:** **9,95 €** → margen **~7 €** por kit.
+- **Envío:** solo como **añadido al carrito** (mismo paquete, sin envío extra). Si se pidiera
+  solo, el "envío gratis" (7 €) se comería el margen → entonces con su propio envío (+3-4 €)
+  o con un importe mínimo.
+- **Dónde se vende:** casilla opcional en el carrito ("Añade el kit de pintura, 9,95 €") →
+  requiere un **5º precio en Stripe** (`STRIPE_PRICE_PAINTKIT`) y una línea en el carrito
+  (lo implemento yo).
+- Si el producto final es **B (kit sin pintar / DIY)**, el kit pasa a ser **esencial** y el
+  **aviso de "requiere pintado" es obligatorio** en la web.
+
 ## 4 · Stripe (los cobros)
 
 - [ ] Dashboard (dashboard.stripe.com) → **Catálogo de productos** → **Añadir producto** →
