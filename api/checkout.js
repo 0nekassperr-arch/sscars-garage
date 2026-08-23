@@ -5,7 +5,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-06-
 
 const PAISES = ['ES','PT','FR','IT','DE','NL','BE','AT','IE','LU','SE','DK','FI','PL','CZ'];
 
+/**
+ * CORS: permite que la vista previa de GitHub Pages (*.github.io) llame a esta API
+ * para cobrar (el frontend usa API_BASE = 'https://sscarsgarage.vercel.app' allí).
+ * El checkout es un POST público sin credenciales/cookies, así que `*` es seguro.
+ */
+function setCors(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+}
+
 export default async function handler(req, res) {
+  setCors(res);
+  if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!process.env.STRIPE_SECRET_KEY) return res.status(503).json({ error: 'Pago no configurado' });
 
