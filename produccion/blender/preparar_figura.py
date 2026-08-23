@@ -86,6 +86,39 @@ obj.scale = (factor, factor, factor)
 bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 print(f'>> Escalado: {largo_actual:.2f} -> {LENGTH_MM} mm')
 
+# ---------- Eliminar piezas sueltas / flotantes ----------
+# TRELLIS (y otros) a veces dejan pequeños fragmentos desconectados: ganchos,
+# salientes, piezas diminutas. Separamos por piezas y descartamos las que son
+# diminutas frente al cuerpo (<2% de sus caras), para que la pieza impresa no
+# lleve trozos sueltos. Umbral conservador: NO borra ruedas ni piezas grandes.
+try:
+    bpy.ops.object.select_all(action='DESELECT')
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.separate(type='LOOSE')
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    piezas = [o for o in bpy.context.scene.objects if o.type == 'MESH' and o.select_get()]
+    if len(piezas) > 1:
+        cuerpo = max(piezas, key=lambda o: len(o.data.polygons))
+        ref = len(cuerpo.data.polygons)
+        for p in piezas:
+            if p is not cuerpo and len(p.data.polygons) < ref * 0.02:
+                print(f'>> Pieza suelta eliminada ({len(p.data.polygons)} caras)')
+                bpy.data.objects.remove(p, do_unlink=True)
+        bpy.ops.object.select_all(action='DESELECT')
+        restantes = [o for o in bpy.context.scene.objects if o.type == 'MESH']
+        for o in restantes:
+            o.select_set(True)
+        bpy.context.view_layer.objects.active = cuerpo
+        if len(restantes) > 1:
+            bpy.ops.object.join()
+        obj = bpy.context.view_layer.objects.active
+        print('>> Piezas sueltas limpiadas')
+except Exception as e:
+    print('>> (aviso) no se pudieron quitar piezas sueltas:', e)
+
 # ---------- Reparar (mejor esfuerzo) ----------
 # Requiere el addon "3D-Print Toolbox" activado; si no, se salta sin romper.
 try:
