@@ -28,6 +28,32 @@ Archivos en `produccion/tripo-r34/` (y en `tripo-r34.zip`):
    - `4-right.webp` → Right
 4. Genera y espera (10-30 s). Descarga el **GLB** (con textura).
 
+## Archivos por modelo (para los otros 14)
+
+Todo está en `produccion/referencias/{slug}/`. Los modelos con vista **recta** (frontal/trasera
+ortográficas, mejores para multivista) la usan; el resto usa la ¾ (`tresc-frontal/trasera`).
+
+| # | slug | Front | Back | Left | Right |
+|---|------|-------|------|------|-------|
+| 01 | r34 | r34-frontal-recta | r34-trasera-recta | r34-lateral | r34-lateral-derecha |
+| 02 | r32 | r32-frontal-recta | r32-trasera-recta | r32-lateral | r32-lateral-derecha |
+| 03 | 350z | 350z-frontal-recta | 350z-trasera-recta | 350z-lateral | 350z-lateral-derecha |
+| 04 | supra | supra-frontal-recta | supra-trasera-recta | supra-lateral | supra-lateral-derecha |
+| 05 | ae86 | ae86-frontal-recta | ae86-trasera-recta | ae86-lateral | ae86-lateral-derecha |
+| 06 | mr2 | mr2-tresc-frontal | mr2-tresc-trasera | mr2-lateral | mr2-lateral-derecha |
+| 07 | rx7 | rx7-tresc-frontal | rx7-tresc-trasera | rx7-lateral | rx7-lateral-derecha |
+| 08 | nsx | nsx-tresc-frontal | nsx-tresc-trasera | nsx-lateral | nsx-lateral-derecha |
+| 09 | civic | civic-tresc-frontal | civic-tresc-trasera | civic-lateral | civic-lateral-derecha |
+| 10 | s2000 | s2000-tresc-frontal | s2000-tresc-trasera | s2000-lateral | s2000-lateral-derecha |
+| 11 | evo | evo-tresc-frontal | evo-tresc-trasera | evo-lateral | evo-lateral-derecha |
+| 12 | eclipse | eclipse-tresc-frontal | eclipse-tresc-trasera | eclipse-lateral | eclipse-lateral-derecha |
+| 13 | 3000gt | 3000gt-tresc-frontal | 3000gt-tresc-trasera | 3000gt-lateral | 3000gt-lateral-derecha |
+| 14 | wrc | wrc-tresc-frontal | wrc-tresc-trasera | wrc-lateral | wrc-lateral-derecha |
+| 15 | lfa | lfa-tresc-frontal | lfa-tresc-trasera | lfa-lateral | lfa-lateral-derecha |
+
+> Consejo: si un modelo sale blando aun con 4 vistas, repite con una **seed distinta** o
+> sube la calidad del plan; los resultados varían de una generación a otra.
+
 ### Alternativa: Meshy
 - https://www.meshy.ai → "Image to 3D" → modo multi-image (front/back/left/right).
 - Mismo orden de imágenes. Registro gratis con créditos.
