@@ -68,6 +68,19 @@ Opciones (coste vs. color vs. mínimo de pedido), resumidas de `GUIA_3D_Y_PRODUC
 | Master + molde silicona + colada | 2-4 € | ✅ | 100+ | Art toys de calidad |
 | Fábrica china (Alibaba) | 1,5-3 € | ✅ | 300-500 | El negocio real a escala |
 
+**Proveedores con API + color (candidatos reales para la automatización):**
+
+- **Printeers** (Países Bajos) — API + impresión a color, dentro de la UE → envío a
+  España sin aduanas. https://printeers.com/integrations/api
+- **Marketiger3D** (Países Bajos) — color + API. https://marketiger3d.com
+- **Shapeways** — color MJF de autoservicio + API para desarrolladores (EE. UU., envía
+  a la UE). https://developers.shapeways.com/api-reference
+- **JLC3DP** — ya integrado en `api/order.js`, pero resina **mono** (sin color real);
+  sirve si decides pintar tú o encargas el pintado aparte.
+
+> El código `api/order.js` hoy llama a la API de JLC3DP. Cuando elijas proveedor, adapto
+> esa función a su API (URL, cabeceras y formato del pedido) y configuramos las variables.
+
 Recomendación: arranca en POD a color bajo demanda (preventa, cero stock) y, con
 ~100-200 pedidos cobrados, salta a fábrica china. Plantillas para pedir presupuesto en
 `produccion/EMAIL_RFQ.md`.
@@ -90,6 +103,16 @@ Cuentas a crear (gratis, ~5 min cada una) y variables a pegar en Vercel
 6. **Admin** → `ADMIN_KEY` (cadena larga aleatoria) para `/api/admin?key=…`.
 
 Guía de referencia: `SSCARS_GARAGE_FINAL.md` (§4 Deploy) y `AUDITORIA.md` (§4 checklist).
+
+---
+
+## 5 · Marketing automatizado (fase futura)
+
+Idea en cartera: publicar a diario en Instagram/Threads con IA — **Antigravity agent**
+de Google AI Studio (https://ai.google.dev/gemini-api/docs/antigravity-agent) + modelos
+gratis de AI Studio — para conseguir las primeras ventas orgánicas y luego escalar con
+ads. Encaja con la "Fase 5" de `AUDITORIA.md` (contenido Threads + IA + Vercel Cron).
+Se monta **después** de que la tienda cobre y haya stock real.
 
 ---
 
