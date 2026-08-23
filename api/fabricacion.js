@@ -14,7 +14,11 @@ const MODEL_EXT = process.env.MODEL_EXT || 'stl';
 const fileUrl = (slug, gold) => `${process.env.STL_BASE_URL}/${slug}${gold ? '-gold' : ''}.${MODEL_EXT}`;
 
 const PROVEEDORES = {
-  // Resina mono por API (ya integrado). Nota: sin color real.
+  // Resina MONO (un solo color por pieza). Es la vía de coste bajo (~4-5€ pieza + ~7€ DHL).
+  // ⚠️ SIN VERIFICAR contra la API real: la Ordering API de JLC3DP requiere SOLICITAR acceso
+  // (jlc3dp.com/help/article/jlc3dp-api) y el endpoint/payload exactos se confirman con las
+  // credenciales reales. Mientras tanto, con FABRICANTE=jlc3dp y sin JLC_API_KEY el pedido
+  // cae en MODO MANUAL (te llega por email y subes el 3MF tú en jlc3dp.com) — válido para lanzar.
   jlc3dp: {
     requiere: ['JLC_API_KEY', 'STL_BASE_URL'],
     async enviar(figura, direccion, orderId) {

@@ -28,14 +28,26 @@ blender --background --python produccion/blender/preparar_figura.py -- {slug}.gl
       drenaje 4 mm, piezas sueltas limpiadas).
 - [ ] Verifica el primero en **PrusaSlicer** (¿estanco? ¿cuántos cm³?) antes de gastar.
 
-## 3 · Proveedor POD (impresión a color)
+## 3 · Proveedor POD (la decisión clave de costes)
 
-- [ ] Elige: **Printeers** (recomendado, Países Bajos) o **Marketiger3D** (NL).
-      Ambos: color real + API + UE (sin aduanas a España).
-- [ ] Pide presupuesto con las plantillas de `produccion/EMAIL_RFQ.md` adjuntando el
-      3MF del R34 + las fotos de `produccion/referencias/r34/`.
-- [ ] **Pide 1 muestra física** antes de firmar producción.
-- [ ] **Dime cuál eliges** → yo implemento su adaptador en `api/fabricacion.js` (variable `FABRICANTE`).
+Elige el tipo de figura según el margen (precios de la web: 24,95 / 69,95 / 129,95 / 669,95 €):
+
+**A. Resina MONO (JLC3DP) — figura de UN color por modelo (estilo Funko)**
+- Coste: **~4-5 € pieza + ~7 € envío** → margen ≈ **13 €** (1 caja) / **48 €** (pack 3) /
+  **93 €** (pack 6) / **590 €** (completo). ✅ Cuadra con el precio.
+- La web debe mostrar la figura de un solo color por modelo (se actualiza).
+- API: la Ordering API de JLC3DP acepta **STL/OBJ/3MF** pero hay que **solicitarla**
+  (jlc3dp.com/help/article/jlc3dp-api). Hasta entonces: **cumplimiento MANUAL**
+  (panel `/api/admin` → subes el 3MF → envías) — perfecto para lanzar.
+- [ ] Si vas con mono → yo ajusto la web y dejamos `FABRICANTE=jlc3dp`.
+
+**B. Full-color premium — solo viable con fábrica china a escala**
+- POD full-color: 15-35 €/ud → **no cuadra** a 24,95 € (solo en el pack de 669,95 €).
+- China (Alibaba): 1,5-3 €/ud pintada, MOQ 300-500/modelo → cuando haya volumen validado.
+- [ ] Si eliges esta vía → **Printeers** o **Marketiger3D** para la preventa del pack completo.
+
+> Regla: pide presupuesto con `produccion/EMAIL_RFQ.md` adjuntando el 3MF + fotos, y
+> **pide 1 muestra física** antes de firmar nada.
 
 ## 4 · Stripe (los cobros)
 
