@@ -1,0 +1,47 @@
+# Prompt R34 — "El Emperador Azul" (texto → 3D)
+
+## Cómo usarlo
+Pega el prompt de abajo en la pestaña de TEXTO de tu generador:
+- Hunyuan3D-2 Space → pestaña "Text Prompt"
+- Meshy → "Text to 3D"
+- Tripo → "Text to Model"
+
+Empieza con el prompt COMPLETO. Si tarda o da error, usa la versión CORTA.
+
+---
+
+## PROMPT COMPLETO (recomendado)
+
+A cute chibi super-deformed vinyl collectible toy figure of a Nissan Skyline GT-R R34 sports coupe, blind box style. Body painted in metallic Bayside Blue. Oversized chibi proportions: big rounded cabin, tiny compact body, exaggerated large gold bronze five-spoke wheels with tires sticking out. Large rear GT-R style rear wing mounted high on the back. Signature rear end with four round red tail lights, two circles per side, above a simple black lower bumper with one central exhaust. Front end with two big round white headlights and a small lower grille. Clean, smooth, toy-like surface, soft plastic look, no panel gaps. Single solid object, standing on a flat ground plane, centered, full 360 degrees, white background, no text, no base, no stand.
+
+## VERSIÓN CORTA (si falla la larga)
+
+Chibi super-deformed toy figure of a blue Nissan Skyline GT-R R34 with gold wheels and a large rear wing, four round red tail lights, big round headlights, cute big-cabin small-body proportions, clean toy plastic surface, full 360 degree single object, white background.
+
+---
+
+## Qué significa cada parte (para que puedas ajustar)
+
+| Fragmento | Qué controla |
+|-----------|--------------|
+| chibi / super-deformed / big cabin small body | la proporción de juguete (cabeza grande, cuerpo chico) |
+| metallic Bayside Blue | el azul de "El Emperador Azul" |
+| gold bronze five-spoke wheels | las llantas doradas |
+| large rear wing | el alerón del GT-R |
+| four round red tail lights, two per side | **los pilotos traseros circulares, firma del R34** |
+| one central exhaust | un solo escape |
+| two big round white headlights | los faros delanteros |
+| clean toy plastic surface, no panel gaps | superficie lisa de vinilo |
+| full 360, white background, no base, no stand | fondo blanco, objeto completo, sin peana |
+
+---
+
+## Al generar (importante)
+1. Genera **varias veces** (cambia la "seed" si el generador lo permite). El mismo prompt da resultados distintos cada vez.
+2. Descarga el **GLB** de la mejor versión.
+3. Mira SOLO: ¿silueta chibi reconocible?, ¿4 ruedas en su sitio?, ¿alerón con forma?, ¿se ven los 4 pilotos rojos atrás?
+
+## Expectativa honesta
+Con texto la malla saldrá **coherente y limpia** (mejor que Hunyuan multivista), pero
+**no será idéntica a tu foto** — es una "recreación", como has dicho. Si la silueta y los
+4 pilotos traseros salen bien, puede valer como figura estilizada de caja ciega.
