@@ -6,7 +6,7 @@
   "description": "SSCARS GARAGE COLLECTIONS - landing colección limitada JDM",
   "scripts": {
     "dev": "npx serve public -l 3000",
-    "test": "node test/sorteo.test.mjs"
+    "test": "node test/sorteo.test.mjs && node test/fabricacion.test.mjs && node test/catalogo.test.mjs"
   },
   "dependencies": {
     "stripe": "^16.12.0"
