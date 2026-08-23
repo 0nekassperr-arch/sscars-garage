@@ -30,23 +30,30 @@ Mapa único de "dónde estamos y qué toca ahora". Fuente de verdad: este reposi
 
 ## 2 · Modelos 3D — PILOTO R34 (lo haces tú en el navegador; yo te guío)
 
-**Próxima acción concreta: probar TRELLIS.2** (gratis, licencia MIT → seguro para vender).
+**Decisión tomada: TRELLIS con UNA sola imagen quedó DESCARTADO** — dio silueta reconocible
+pero demasiado blanda/derretida (llantas deformadas, trasera fundida, sin detalle). El
+pipeline es **Tripo o Meshy en modo multivista** (4 vistas) — nítido y fiel.
 
-1. Entra en https://huggingface.co/spaces y busca `TRELLIS` (o `microsoft/TRELLIS`).
-2. Sube **una sola imagen**: `produccion/test-trellis/r34-input-single.webp`
-   (la ¾ frontal de producto con fondo blanco).
-3. Parámetros por defecto la primera vez (`octree resolution` 512, `num steps` ~50).
-4. Genera y descarga el **GLB**.
+**Acción concreta: prueba el R34 en Tripo3D.**
 
-**Cómo juzgar el resultado** (mira solo esto): ¿silueta R34 chibi reconocible?,
-¿4 ruedas en su sitio sin fundirse?, ¿alerón con forma?, ¿trasera no derretida?
+1. Abre https://www.tripo3d.ai → **Create** → **Image to Model**.
+2. En "Generación por múltiples vistas" sube:
+   - Front  → `produccion/tripo-r34/1-front.webp`
+   - Back   → `produccion/tripo-r34/2-back.webp`
+   - Left   → `produccion/tripo-r34/3-left.webp`
+   - Right  → `produccion/tripo-r34/4-right.webp`
+3. Genera y descarga el **GLB**. (Alternativa: Meshy, mismo orden.)
 
-- Si TRELLIS sale **mejor que Hunyuan** → ese es el pipeline para los 15
-  (1 imagen ¾ frontal por coche, ya las tienes en `public/images/*-front.webp`).
-- Si TRELLIS **también falla** → probar **Tripo3D** (https://www.tripo3d.ai) o **Meshy**
-  con las 4 vistas de `produccion/tripo-r34/` (guías en `produccion/GUIA_TRIPO.md`).
-- Detalle completo del flujo (Blender, vaciado, drenaje, exportar 3MF):
-  `produccion/EMPIEZA_AQUI.md` y `produccion/FLUJO_GRATIS.md`.
+**Cómo juzgar (con lupa):** ¿silueta reconocible? / ¿llantas con 5 radios limpias (no blandas)? /
+¿trasera limpia sin masa fundida? / ¿alerón con forma? / ¿hay detalle y cantos (no plastilina)?
+Si el R34 sale nítido → repetimos con los otros 14 usando sus vistas de
+`produccion/referencias/{slug}/` (`*-tresc-frontal`, `*-tresc-trasera`, `*-lateral`, `*-lateral-derecha`).
+
+> ⚠️ Licencia comercial: los créditos gratis de Tripo/Meshy son de uso NO comercial —
+> necesitarás un plan de pago (~0,5-2 €/modelo) para vender. Detalle en `produccion/GUIA_TRIPO.md`.
+
+- Flujo completo (Blender, vaciado, drenaje, exportar 3MF): `produccion/EMPIEZA_AQUI.md`
+  y `produccion/FLUJO_GRATIS.md`.
 
 > 🤖 **Automatización opcional (Blender headless):** cuando tengas el GLB bueno, el
 > script `produccion/blender/preparar_figura.py` hace solo el escalado a 70 mm, la

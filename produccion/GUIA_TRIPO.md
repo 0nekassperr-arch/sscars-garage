@@ -1,4 +1,10 @@
-# TRIPO AI — Prueba R34 (multivista, trasera FIEL)
+# TRIPO AI — Pipeline 3D DEFINITIVO (multivista, trasera FIEL)
+
+## DECISIÓN (a día de hoy)
+TRELLIS con UNA sola imagen dio una silueta reconocible pero **demasiado blanda/derretida**:
+llantas deformadas, bajo/parachoques trasero fundido y sin detalle fino. Para una figura
+premium **no vale**. Por eso el pipeline es **Tripo o Meshy en modo multivista** (4 vistas),
+que da mucha más nitidez y fidelidad. **Este es el flujo que usaremos para los 15.**
 
 ## Qué es esto
 Las 4 vistas del R34 ya normalizadas: misma altura de coche y misma línea de suelo en las 4
@@ -26,11 +32,16 @@ Archivos en `produccion/tripo-r34/` (y en `tripo-r34.zip`):
 - https://www.meshy.ai → "Image to 3D" → modo multi-image (front/back/left/right).
 - Mismo orden de imágenes. Registro gratis con créditos.
 
-## Qué mirar al ver el resultado
-1. ¿La silueta es un R34 chibi reconocible? (sí/no)
-2. ¿Las 4 ruedas están en su sitio, no fundidas con la carrocería?
-3. ¿El alerón tiene forma?
-4. **¿La trasera se ve?** ¿Tiene sus pilotos redondos y su forma?
+## Qué mirar al ver el resultado (miradlo CON LUPA)
+1. ¿Silueta R34 chibi reconocible? (sí/no)
+2. **¿Las llantas son 5 radios definidas y limpias**, o se ven blandas/colapsadas?
+3. **¿La trasera está limpia**: pilotos redondos + parachoques con forma, **sin masa fundida** ni bultos colgando?
+4. ¿El alerón tiene forma y no es una mancha?
+5. ¿Se aprecia **detalle/cantos** (no un look de plastilina)?
+
+> Si las llantas están blandas, la trasera es un amasijo o no hay detalle → **NO vale**.
+> Con las 4 vistas de Tripo debe verse nítido; si aun así sale blando, sube la
+> resolución/calidad del plan y repite.
 
 Con Tripo/Meshy la trasera SÍ debe verse, porque le damos `2-back.webp`.
 
