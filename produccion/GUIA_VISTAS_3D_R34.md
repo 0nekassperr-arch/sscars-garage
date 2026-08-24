@@ -63,12 +63,12 @@ justo lo que hace que estos modelos deformen el morro.
 
 ---
 
-## 3. Las 12 vistas del set
+## 3. Las 13 vistas del set
 
 `produccion/vistas3d/r34/` — cada una en `blanco/` (fondo blanco) y `alfa/`
 (PNG transparente), 1024×1024.
 
-**Reales, de la sesión de producto (5 únicas):**
+**Reales, de la sesión de producto (6 únicas):**
 
 1. `r34-frontal-recta` — frontal
 2. `r34-lateral` — lateral izquierdo
@@ -87,7 +87,8 @@ justo lo que hace que estos modelos deformen el morro.
 
 10. `r34-tresc-frontal-alto`
 11. `r34-tresc-trasera-alto`
-12. `r34-tresc-frontal-alto-espejo` + `r34-tresc-trasera-alto-espejo`
+12. `r34-tresc-frontal-alto-espejo`
+13. `r34-tresc-trasera-alto-espejo`
 
 Revisión rápida: `hoja_contactos.jpg` y `turntable.gif`.
 
