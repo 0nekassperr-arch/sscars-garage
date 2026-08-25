@@ -1,0 +1,137 @@
+[
+ {
+  "n": "01",
+  "name": "El Emperador Azul",
+  "real": "Nissan Skyline GT-R R34 · 1999",
+  "img": "r34.webp",
+  "lore": "El «Godzilla» definitivo. Con su RB26 biturbo y el sistema de tracción ATTESA E-TS, el R34 se convirtió en el rey absoluto de la Wangan y de los Midnight Club de Tokio: se decía que reinaba en la autopista a las 3 de la mañana, cuando nadie se atrevía a plantarle cara. El último gran GT-R de la era dorada, nacido para correr de noche y no mirar atrás.",
+  "rareza": "legendario",
+  "slug": "r34"
+ },
+ {
+  "n": "02",
+  "name": "El Monstruo Púrpura",
+  "real": "Nissan Skyline GT-R R32 · 1989",
+  "img": "r32.webp",
+  "lore": "Resucitó la leyenda GT-R tras dieciséis años de silencio y arrasó en el Grupo A con tanta autoridad que la prensa lo bautizó «Godzilla». Ganaba con tal facilidad que los campeonatos cambiaron las reglas solo para frenarlo. En su acabado Midnight Purple, es pura intimidación rodando por la C1 de Tokio a más de 250 km/h.",
+  "rareza": "raro",
+  "slug": "r32"
+ },
+ {
+  "n": "03",
+  "name": "Colmillo Azul",
+  "real": "Nissan 350Z · 2002",
+  "img": "350z.webp",
+  "lore": "El Z que devolvió el equilibrio entre potencia y peso. Su V6 VQ35DE, fiable hasta el aburrimiento, lo convirtió en la base favorita del drift: asequible de preparar y con un reparto de pesos perfecto para enlazar curvas de costado. En los tandems de derrape japoneses, pocos nombres suenan tanto como el Z33.",
+  "rareza": "raro",
+  "slug": "350z"
+ },
+ {
+  "n": "04",
+  "name": "La Bestia Naranja",
+  "real": "Toyota Supra MK4 · 1993",
+  "img": "supra.webp",
+  "lore": "El 2JZ-GTE es, sencillamente, el seis cilindros más venerado del tuning: aguanta el doble o el triple de su potencia de serie sin pestañear. En la Wangan y en las drag races ilegales de la bahía de Tokio, un Supra bien afinado era sentencia de muerte. Su alerón se veía venir desde dos calles de distancia.",
+  "rareza": "legendario",
+  "slug": "supra"
+ },
+ {
+  "n": "05",
+  "name": "El Fantasma de la Montaña",
+  "real": "Toyota AE86 Sprinter Trueno · 1983",
+  "img": "ae86.webp",
+  "lore": "El «Hachi-Roku». No era el más potente, pero pesaba nada, empujaba con las ruedas traseras y se bailaba en el touge como ninguno. Se hizo leyenda en los puertos de montaña japoneses, donde la técnica vence a la potencia. Ligero, humilde y letal: el coche que enseñó al mundo que el derrape es un arte.",
+  "rareza": "clasico",
+  "slug": "ae86"
+ },
+ {
+  "n": "06",
+  "name": "El Exótico de Bolsillo",
+  "real": "Toyota MR2 SW20 · 1989",
+  "img": "mr2.webp",
+  "lore": "Motor central, tracción trasera y sensaciones de superdeportivo por la mitad de todo. El «Ferrari de bolsillo» llevó la emoción de los grandes exóticos a la calle. En carreteras de montaña, su comportamiento de coche de motor central lo hacía distinto a todo lo demás de su época.",
+  "rareza": "clasico",
+  "slug": "mr2"
+ },
+ {
+  "n": "07",
+  "name": "El Aullido Rotativo",
+  "real": "Mazda RX-7 FD3S · 1991",
+  "img": "rx7.webp",
+  "lore": "Un motor sin pistones. El rotativo 13B-REW giraba tan alto y sonaba tan agudo que no se confunde con nada: un aullido que sube y sube hasta el límite. Ligero, equilibrado y exótico, el FD es una pieza de ingeniería que Mazda jamás ha vuelto a repetir. Una reliquia de los clubes de carreras nocturnos.",
+  "rareza": "epico",
+  "slug": "rx7"
+ },
+ {
+  "n": "08",
+  "name": "El Samurái Rojo",
+  "real": "Honda NSX · 1990",
+  "img": "nsx.webp",
+  "lore": "Honda quiso demostrar que un superdeportivo podía ser fiable, utilizable a diario y preciso como un bisturí, y contó con Ayrton Senna en su puesta a punto. El primer «supercoche de todos los días», construido en aluminio y afinado junto a un campeón del mundo. Equilibrio puro.",
+  "rareza": "epico",
+  "slug": "nsx"
+ },
+ {
+  "n": "09",
+  "name": "El Puño Blanco",
+  "real": "Honda Civic EK9 Type R · 1997",
+  "img": "civic.webp",
+  "lore": "Un 1.6 atmosférico que grita hasta las 9.000 revoluciones. El VTEC del B16B convierte cada subida de vueltas en una celebración. El EK9 demostró que un utilitario japonés, bien afinado, podía humillar a coches con el doble de cilindros en cualquier circuito. Puro espíritu de los Kanjo Runners de Osaka.",
+  "rareza": "clasico",
+  "slug": "civic"
+ },
+ {
+  "n": "10",
+  "name": "El Grito Amarillo",
+  "real": "Honda S2000 · 1999",
+  "img": "s2000.webp",
+  "lore": "Descapotable, atmosférico y con la zona roja más alta de su época: 9.000 rpm que se clavan en la memoria. Su motor F20C logró la mayor potencia específica de un atmosférico de producción de su tiempo. Un roadster puro, hecho para escuchar el motor a cielo abierto.",
+  "rareza": "raro",
+  "slug": "s2000"
+ },
+ {
+  "n": "11",
+  "name": "El Domador",
+  "real": "Mitsubishi Lancer Evolution · 1992",
+  "img": "evo.webp",
+  "lore": "Nacido para homologar el Grupo A del Mundial de Rallies, llegó a la calle con tracción total, turbo y un hambre de curvas descomunal. Los títulos de Tommi Mäkinen convirtieron al Lancer Evolution en sinónimo de dominar cualquier carretera, llueva o no. El rally con matrícula de calle.",
+  "rareza": "raro",
+  "slug": "evo"
+ },
+ {
+  "n": "12",
+  "name": "Verde Veneno",
+  "real": "Mitsubishi Eclipse · 1995",
+  "img": "eclipse.webp",
+  "lore": "Imposible de ignorar. Con su 4G63 turbo y ese verde fósforo de alerón descomunal, el Eclipse de segunda generación es la cara más reconocible del tuning de los 2000. Protagonista de la película que metió el JDM en los dormitorios de medio mundo y disparó el sueño de la caja de cambios que salta de marcha.",
+  "rareza": "clasico",
+  "slug": "eclipse"
+ },
+ {
+  "n": "13",
+  "name": "El Visionario",
+  "real": "Mitsubishi 3000GT VR-4 · 1990",
+  "img": "3000gt.webp",
+  "lore": "V6 biturbo, tracción total, aerodinámica activa, suspensión ajustable y hasta dirección en las cuatro ruedas: tecnología que parecía ciencia ficción veinte años antes que nadie. El 3000GT fue la apuesta más ambiciosa de Mitsubishi, un adelantado a su tiempo que hoy se revaloriza como el icono que siempre fue.",
+  "rareza": "clasico",
+  "slug": "3000gt"
+ },
+ {
+  "n": "14",
+  "name": "El Azul del Rally",
+  "real": "Subaru Impreza WRX STI · 1992",
+  "img": "wrc.webp",
+  "lore": "Azul rally, llantas doradas y el rugido del motor bóxer. De la mano de Colin McRae, el Impreza escribió la página más gloriosa del rally japonés. Ensanchado y con alma de tramo cronometrado, es el coche que hizo soñar a una generación entera con volar entre los árboles.",
+  "rareza": "raro",
+  "slug": "wrc"
+ },
+ {
+  "n": "15",
+  "name": "La Voz del V10",
+  "real": "Lexus LFA · 2010",
+  "img": "lfa.webp",
+  "lore": "Diez cilindros atmosféricos cuyo sonido fue afinado junto a los ingenieros de Yamaha para rugir como un Fórmula 1. 552 caballos y un motor que sube de 0 a 9.000 rpm en un suspiro. Más que un coche, el LFA es un instrumento musical. Solo se fabricaron 500 unidades. La despedida más perfecta de una era.",
+  "rareza": "epico",
+  "slug": "lfa"
+ }
+]

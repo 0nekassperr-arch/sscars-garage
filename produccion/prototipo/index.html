@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Mi colección · SSCARS GARAGE</title>
+<style>
+:root{
+  --black:#000;--red:#FF1A1A;--white:#FFF;--grey:#F5F5F5;--line:#E5E5E5;--ink:#555;
+  --gold:#C9971C;
+  --impact:Impact,'Haettenschweiler','Franklin Gothic Bold','Arial Narrow',Arial,sans-serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--black);background:var(--white);line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{width:100%;max-width:1100px;margin:0 auto;padding:0 20px}
+a{color:inherit}
+.kicker{font-size:13px;letter-spacing:.32em;text-transform:uppercase;font-weight:700}
+h2.big{font-family:var(--impact);font-weight:900;font-size:clamp(28px,5.6vw,46px);line-height:.97;margin:8px 0 6px;text-transform:uppercase}
+.red{color:var(--red)}
+.lead{color:var(--ink);font-size:16px;max-width:640px}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px;border-radius:6px}
+
+/* demo banner */
+.demo{background:#111;color:#fff;font-size:13px;text-align:center;padding:9px 16px}
+.demo b{color:var(--red)}
+
+header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #EEE}
+.hbar{height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1100px;margin:0 auto;padding:0 20px}
+.logo img{width:150px;height:auto;display:block}
+.tabs{display:flex;gap:4px}
+.tab{border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  padding:10px 14px;border-radius:999px;cursor:pointer;color:#888}
+.tab[aria-selected="true"]{background:#000;color:#fff}
+
+section{padding:clamp(34px,5vw,52px) 0}
+
+/* ---------- progreso ---------- */
+.prog-top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.count{font-family:var(--impact);font-size:clamp(40px,9vw,72px);line-height:.9}
+.count small{font-size:.4em;color:#999}
+.bar{height:10px;background:var(--grey);border-radius:999px;overflow:hidden;margin-top:18px}
+.bar span{display:block;height:100%;background:var(--red);border-radius:999px;transition:width .5s ease}
+.hint{margin-top:10px;font-size:14px;color:var(--ink)}
+
+/* ---------- rejilla ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px;margin-top:26px}
+.card{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;text-align:left;
+  cursor:pointer;font-family:inherit;padding:0;position:relative;transition:transform .15s,box-shadow .2s,border-color .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.09);border-color:#CCC}
+.pic{aspect-ratio:1/1;background:var(--grey);display:grid;place-items:center;overflow:hidden}
+.pic img{width:100%;height:100%;object-fit:contain;transition:filter .25s,opacity .25s}
+.card.locked .pic img{filter:grayscale(1) contrast(.25) brightness(1.5);opacity:.5}
+.meta{padding:10px 12px 12px;border-top:1px solid #F0F0F0}
+.mnum{font-size:11px;letter-spacing:.18em;color:#AAA;font-weight:700}
+.mname{font-size:13px;font-weight:800;line-height:1.25;margin-top:2px}
+.card.locked .mname{color:#BBB}
+.unit{font-size:11px;color:var(--ink);margin-top:4px;font-variant-numeric:tabular-nums}
+.badge{position:absolute;top:9px;left:9px;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;
+  padding:4px 8px;border-radius:999px;background:#000;color:#fff}
+.badge.legendario{background:var(--red)}
+.badge.epico{background:#7B2FF7}
+.badge.raro{background:#0A84FF}
+.badge.clasico{background:#666}
+.dupe{position:absolute;top:9px;right:9px;font-size:10px;font-weight:900;background:var(--gold);color:#fff;
+  padding:4px 8px;border-radius:999px}
+.card.locked .badge{background:#DDD;color:#999}
+
+/* ---------- intercambio ---------- */
+.match{border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:14px;display:grid;
+  grid-template-columns:1fr auto 1fr;gap:16px;align-items:center}
+.match .who{font-size:12px;color:#999;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.match .what{font-weight:800;font-size:15px;margin-top:3px}
+.match .sub{font-size:13px;color:var(--ink)}
+.swap{width:42px;height:42px;border-radius:999px;background:var(--grey);display:grid;place-items:center;font-size:19px}
+.match .cta{grid-column:1/-1;margin-top:6px}
+.btn{display:inline-block;background:var(--red);color:#fff;font-weight:900;font-size:12px;letter-spacing:.06em;
+  text-transform:uppercase;padding:12px 22px;border-radius:999px;border:0;cursor:pointer;font-family:inherit}
+.btn.ghost{background:#fff;color:#000;border:1.5px solid #DDD}
+.empty{border:1px dashed var(--line);border-radius:16px;padding:30px;text-align:center;color:var(--ink);margin-top:16px}
+
+/* ---------- registro ---------- */
+.reg{background:var(--grey);border-radius:18px;padding:clamp(20px,4vw,34px);display:grid;
+  grid-template-columns:1fr 1fr;gap:26px;align-items:center}
+.code-in{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.code-in input{flex:1;min-width:170px;font-family:ui-monospace,monospace;font-size:15px;letter-spacing:.1em;
+  padding:13px 15px;border:1.5px solid #DDD;border-radius:10px;background:#fff;text-transform:uppercase}
+.code-in input:focus{outline:none;border-color:#000}
+.tarjeta{background:#000;color:#fff;border-radius:14px;padding:22px;aspect-ratio:85/55;display:flex;
+  flex-direction:column;justify-content:space-between}
+.tarjeta .t-num{font-family:var(--impact);font-size:clamp(26px,5vw,40px);line-height:1}
+.tarjeta .t-lab{font-size:10px;letter-spacing:.28em;color:#888;text-transform:uppercase}
+.qr{width:56px;height:56px;background:#fff;border-radius:6px;
+  background-image:repeating-linear-gradient(0deg,#000 0 6px,#fff 6px 12px),repeating-linear-gradient(90deg,#000 0 6px,transparent 6px 12px);
+  background-size:100% 100%,100% 100%}
+.msg{margin-top:12px;font-size:14px;font-weight:700;min-height:20px}
+.msg.ok{color:#0A7C2F}.msg.err{color:var(--red)}
+
+/* ---------- modal ---------- */
+dialog{border:0;border-radius:18px;padding:0;max-width:520px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+.dlg{padding:24px}
+.dlg .pic{aspect-ratio:16/10;border-radius:12px;margin-bottom:14px}
+.dlg h3{font-family:var(--impact);font-size:28px;text-transform:uppercase;line-height:1}
+.dlg .real{font-size:13px;color:var(--ink);margin-top:2px}
+.dlg p.lore{font-size:14.5px;color:#333;margin-top:12px}
+.dlg .row{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.close{position:absolute;top:12px;right:14px;border:0;background:#fff;width:34px;height:34px;border-radius:999px;
+  font-size:20px;cursor:pointer;line-height:1}
+.hide{display:none!important}
+@media(max-width:720px){.reg{grid-template-columns:1fr}.match{grid-template-columns:1fr}.swap{display:none}}
+</style>
+</head>
+<body>
+
+<p class="demo">Prototipo navegable · los datos son <b>de ejemplo</b> y se guardan solo en este navegador</p>
+
+<header>
+  <div class="hbar">
+    <a class="logo" href="#"><img src="images/logo-sscars-cropped.jpg" alt="SSCARS Garage"></a>
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true"  data-view="coleccion">Mi colección</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="cambios">Intercambios</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="registrar">Registrar</button>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ COLECCIÓN ============ -->
+<section id="v-coleccion">
+  <div class="wrap">
+    <p class="kicker">Tu garaje</p>
+    <div class="prog-top">
+      <div>
+        <h2 class="big">Mi <span class="red">colección</span></h2>
+        <p class="lead">Cada figura que registras ocupa su hueco. Los que faltan se quedan en gris hasta que los consigues.</p>
+      </div>
+      <div class="count"><span id="have">0</span><small>/15</small></div>
+    </div>
+    <div class="bar"><span id="bar" style="width:0%"></span></div>
+    <p class="hint" id="hint"></p>
+    <div class="grid" id="grid"></div>
+  </div>
+</section>
+
+<!-- ============ INTERCAMBIOS ============ -->
+<section id="v-cambios" class="hide">
+  <div class="wrap">
+    <p class="kicker">Mercado</p>
+    <h2 class="big">Cambia tus <span class="red">repetidos</span></h2>
+    <p class="lead">Si te ha salido dos veces el mismo coche, no lo has perdido: hay alguien al que le falta justo ese y le sobra el que tú buscas.</p>
+    <div id="matches"></div>
+  </div>
+</section>
+
+<!-- ============ REGISTRAR ============ -->
+<section id="v-registrar" class="hide">
+  <div class="wrap">
+    <p class="kicker">Certificado</p>
+    <h2 class="big">Registra tu <span class="red">figura</span></h2>
+    <p class="lead">Dentro de cada caja hay una tarjeta con un código único. Escanéalo o escríbelo aquí para añadir la pieza a tu colección.</p>
+    <div class="reg" style="margin-top:22px">
+      <div>
+        <label class="kicker" for="code" style="font-size:11px">Código de la tarjeta</label>
+        <div class="code-in">
+          <input id="code" placeholder="SSC-R34-037" autocomplete="off" spellcheck="false">
+          <button class="btn" id="go">Registrar</button>
+        </div>
+        <p class="msg" id="msg"></p>
+        <p style="font-size:13px;color:var(--ink);margin-top:6px">
+          ¿No tienes ninguna a mano? <button class="btn ghost" id="demo" style="padding:7px 14px;margin-top:6px">Simular una caja</button>
+        </p>
+      </div>
+      <div class="tarjeta">
+        <div>
+          <p class="t-lab">Edición limitada</p>
+          <p class="t-num">037<span style="color:#666">/300</span></p>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px">
+          <div>
+            <p class="t-lab">01 · El Emperador Azul</p>
+            <p style="font-family:ui-monospace,monospace;font-size:12px;color:#bbb;margin-top:3px">SSC-R34-037</p>
+          </div>
+          <div class="qr" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<dialog id="dlg">
+  <button class="close" onclick="dlg.close()" aria-label="Cerrar">×</button>
+  <div class="dlg" id="dlgBody"></div>
+</dialog>
+
+<script type="module">
+const KEY = 'sscars-demo-v1';
+let MODELOS = [];
+// estado: { r34: {unidades:[37,112], edicion:300} }
+let mine = JSON.parse(localStorage.getItem(KEY) || '{}');
+const save = () => localStorage.setItem(KEY, JSON.stringify(mine));
+
+const $ = s => document.querySelector(s);
+const rand = n => Math.floor(Math.random()*n)+1;
+
+fetch('modelos.json').then(r=>r.json()).then(d=>{ MODELOS = d; render(); });
+
+/* ---------- navegación ---------- */
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected', x===t));
+  ['coleccion','cambios','registrar'].forEach(v=>
+    $('#v-'+v).classList.toggle('hide', v!==t.dataset.view));
+});
+
+/* ---------- render colección ---------- */
+function render(){
+  const grid = $('#grid'); grid.innerHTML='';
+  let n=0;
+  MODELOS.forEach(m=>{
+    const own = mine[m.slug];
+    if(own) n++;
+    const dupes = own ? own.unidades.length-1 : 0;
+    const b = document.createElement('button');
+    b.className = 'card' + (own?'':' locked');
+    b.innerHTML = `
+      <span class="badge ${m.rareza}">${m.rareza}</span>
+      ${dupes>0?`<span class="dupe">×${dupes+1}</span>`:''}
+      <div class="pic"><img src="images/${m.slug}-front.webp" alt="${own?m.name:'Sin conseguir'}" loading="lazy"></div>
+      <div class="meta">
+        <p class="mnum">${m.n}</p>
+        <p class="mname">${own ? m.name : '· · · · ·'}</p>
+        <p class="unit">${own ? own.unidades.map(u=>`#${String(u).padStart(3,'0')}`).join(' · ') : 'Te falta'}</p>
+      </div>`;
+    b.onclick = ()=>abrir(m, own);
+    grid.appendChild(b);
+  });
+  $('#have').textContent = n;
+  $('#bar').style.width = (n/MODELOS.length*100)+'%';
+  const falta = MODELOS.length-n;
+  $('#hint').textContent = n===0
+    ? 'Todavía no has registrado ninguna figura.'
+    : falta===0 ? '¡Colección completa! Eres uno de los pocos que la ha cerrado.'
+    : `Te faltan ${falta} para completar la colección.`;
+  renderMatches();
+}
+
+/* ---------- ficha ---------- */
+const dlg = $('#dlg');
+window.dlg = dlg;
+function abrir(m, own){
+  $('#dlgBody').innerHTML = `
+    <div class="pic" style="background:var(--grey)"><img src="images/${m.slug}-front.webp" alt="" style="width:100%;height:100%;object-fit:contain${own?'':';filter:grayscale(1) opacity(.4)'}"></div>
+    <span class="badge ${m.rareza}" style="position:static;display:inline-block;margin-bottom:8px">${m.rareza}</span>
+    <h3>${m.n} · ${m.name}</h3>
+    <p class="real">${m.real}</p>
+    ${own ? `<p class="unit" style="margin-top:8px;font-weight:800">Tus unidades: ${own.unidades.map(u=>`#${String(u).padStart(3,'0')}/${own.edicion}`).join(' · ')}</p>` : ''}
+    <p class="lore">${m.lore}</p>
+    <div class="row">${own
+      ? `<button class="btn ghost" id="mk">Marcar como repetida para cambiar</button>`
+      : `<button class="btn">Buscar en intercambios</button>`}</div>`;
+  dlg.showModal();
+}
+
+/* ---------- registro ---------- */
+function registrar(slug, unidad){
+  const m = MODELOS.find(x=>x.slug===slug);
+  if(!m) return null;
+  mine[slug] = mine[slug] || {unidades:[], edicion:300};
+  mine[slug].unidades.push(unidad);
+  save(); render();
+  return m;
+}
+$('#go').onclick = ()=>{
+  const v = $('#code').value.trim().toUpperCase();
+  const msg = $('#msg');
+  const m = v.match(/^SSC-([A-Z0-9]+)-(\d{1,3})$/);
+  if(!m){ msg.className='msg err'; msg.textContent='Formato no válido. Ejemplo: SSC-R34-037'; return; }
+  const mod = MODELOS.find(x=>x.slug===m[1].toLowerCase());
+  if(!mod){ msg.className='msg err'; msg.textContent='Ese código no corresponde a ninguna figura.'; return; }
+  const rep = mine[mod.slug]?.unidades.includes(+m[2]);
+  if(rep){ msg.className='msg err'; msg.textContent='Esa unidad ya estaba registrada.'; return; }
+  registrar(mod.slug, +m[2]);
+  msg.className='msg ok';
+  msg.textContent = `¡Registrada! ${mod.n} · ${mod.name} — unidad #${String(+m[2]).padStart(3,'0')}/300`;
+  $('#code').value='';
+};
+$('#demo').onclick = ()=>{
+  const m = MODELOS[Math.floor(Math.random()*MODELOS.length)];
+  const u = rand(300);
+  registrar(m.slug, u);
+  const msg = $('#msg'); msg.className='msg ok';
+  msg.textContent = `Caja abierta: ${m.n} · ${m.name} — unidad #${String(u).padStart(3,'0')}/300`;
+};
+
+/* ---------- intercambios ---------- */
+const OTROS = ['Marcos_R32','tunerlaura','JDM_Alberto','kei.driver','wanganmidnight88'];
+function renderMatches(){
+  const box = $('#matches'); box.innerHTML='';
+  const repes  = MODELOS.filter(m=>mine[m.slug]?.unidades.length>1);
+  const faltan = MODELOS.filter(m=>!mine[m.slug]);
+  if(!repes.length){
+    box.innerHTML = `<div class="empty"><b>Todavía no tienes repetidos.</b><br>
+      Cuando una figura te salga dos veces, aparecerá aquí para que la cambies por una que te falte.
+      <br><br><button class="btn ghost" id="sim">Simular un repetido</button></div>`;
+    $('#sim').onclick = ()=>{
+      const tengo = MODELOS.filter(m=>mine[m.slug]);
+      const m = (tengo.length?tengo:MODELOS)[Math.floor(Math.random()*(tengo.length||MODELOS.length))];
+      registrar(m.slug, rand(300));
+      document.querySelector('.tab[data-view="cambios"]').click();
+    };
+    return;
+  }
+  if(!faltan.length){
+    box.innerHTML = `<div class="empty">Tienes la colección completa. Tus repetidos ahora son moneda de cambio para otros.</div>`;
+    return;
+  }
+  repes.forEach((m,i)=>{
+    const q = faltan[i % faltan.length];
+    const el = document.createElement('div');
+    el.className='match';
+    el.innerHTML = `
+      <div>
+        <p class="who">Tú entregas</p>
+        <p class="what">${m.n} · ${m.name}</p>
+        <p class="sub">Te sobra ${mine[m.slug].unidades.length-1}</p>
+      </div>
+      <div class="swap" aria-hidden="true">⇄</div>
+      <div>
+        <p class="who">Recibes de ${OTROS[i%OTROS.length]}</p>
+        <p class="what">${q.n} · ${q.name}</p>
+        <p class="sub">Te falta</p>
+      </div>
+      <div class="cta"><button class="btn">Proponer intercambio</button></div>`;
+    box.appendChild(el);
+  });
+}
+</script>
+</body>
+</html>

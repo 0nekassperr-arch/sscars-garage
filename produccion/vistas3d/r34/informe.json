@@ -1,0 +1,56 @@
+{
+  "modelo": "r34",
+  "patron": "r34-lateral",
+  "lienzo": 1024,
+  "vistas": {
+    "r34-cenital": {
+      "origen_px": [
+        482,
+        864
+      ],
+      "factor_escala": 1.043
+    },
+    "r34-frontal-recta": {
+      "origen_px": [
+        851,
+        829
+      ],
+      "factor_escala": 0.5704
+    },
+    "r34-lateral-derecha": {
+      "origen_px": [
+        949,
+        498
+      ],
+      "factor_escala": 0.9495
+    },
+    "r34-lateral": {
+      "origen_px": [
+        949,
+        498
+      ],
+      "factor_escala": 0.9495
+    },
+    "r34-trasera-recta": {
+      "origen_px": [
+        781,
+        669
+      ],
+      "factor_escala": 0.7068
+    },
+    "r34-tresc-frontal": {
+      "origen_px": [
+        972,
+        703
+      ],
+      "factor_escala": 0.6727
+    },
+    "r34-tresc-trasera": {
+      "origen_px": [
+        947,
+        583
+      ],
+      "factor_escala": 0.8111
+    }
+  }
+}
