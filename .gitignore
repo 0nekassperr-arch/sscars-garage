@@ -4,3 +4,6 @@ node_modules
 .DS_Store
 __pycache__/
 *.pyc
+
+# Prototipo (maqueta local, no se despliega)
+produccion/prototipo/images/
