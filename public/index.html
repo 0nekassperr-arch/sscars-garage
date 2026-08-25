@@ -107,17 +107,37 @@ main{padding-top:var(--head)}
 .hctas{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:26px}
 .btn-ghost{border:1px solid var(--line);border-radius:999px;padding:12px 22px;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;transition:.2s;background:#fff}
 .btn-ghost:hover{border-color:#000}
-/* ---- tirada numerada (sustituye al contador de tiempo) ---- */
-.tirada{max-width:520px;margin:18px 0 0;background:#000;color:#fff;border-radius:16px;padding:16px 18px}
-.t-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.t-serie{font-family:var(--impact);font-size:clamp(20px,4.2vw,28px);letter-spacing:.02em;text-transform:uppercase;line-height:1}
-.t-restan{font-size:13px;color:#BBB;font-variant-numeric:tabular-nums}
-.t-restan b{color:var(--red);font-size:20px;font-weight:900}
-.t-bar{height:8px;background:#2A2A2A;border-radius:999px;overflow:hidden;margin:12px 0 10px}
-.t-bar span{display:block;height:100%;background:var(--red);border-radius:999px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
-.t-pie{font-size:12.5px;color:#999;margin:0;line-height:1.5}
-.tirada.agotada .t-restan b{color:#888}
-.tirada.agotada .t-bar span{background:#888}
+.count{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-width:520px;margin:18px 0 0;
+  animation:latido 2.8s ease-in-out infinite;will-change:transform}
+.cbox{background:var(--red);color:#fff;border-radius:14px;padding:13px 4px;text-align:center;transform-origin:center}
+/* golpe al cambiar el segundo */
+.cbox.beat{animation:golpe .55s cubic-bezier(.22,1.2,.36,1)}
+/* golpe mas fuerte al cambiar minuto, hora o dia */
+.cbox.beat-fuerte{animation:golpeFuerte .75s cubic-bezier(.22,1.3,.36,1)}
+@keyframes golpe{
+  0%  {transform:scale(1);     box-shadow:0 0 0 rgba(255,26,26,0)}
+  30% {transform:scale(1.075); box-shadow:0 10px 22px rgba(255,26,26,.40)}
+  60% {transform:scale(.992)}
+  100%{transform:scale(1);     box-shadow:0 0 0 rgba(255,26,26,0)}
+}
+@keyframes golpeFuerte{
+  0%  {transform:scale(1);     box-shadow:0 0 0 rgba(255,26,26,0);   filter:brightness(1)}
+  25% {transform:scale(1.14);  box-shadow:0 14px 30px rgba(255,26,26,.55); filter:brightness(1.12)}
+  55% {transform:scale(.985)}
+  80% {transform:scale(1.02)}
+  100%{transform:scale(1);     box-shadow:0 0 0 rgba(255,26,26,0);   filter:brightness(1)}
+}
+.cnum{font-family:var(--impact);font-size:clamp(24px,6vw,36px);line-height:1;font-weight:900;font-variant-numeric:tabular-nums}
+.clab{font-size:clamp(8px,2.2vw,10px);letter-spacing:.1em;font-weight:800;opacity:.92;margin-top:5px}
+/* latido: dos golpes seguidos y una pausa larga, como un corazon */
+@keyframes latido{
+  0%   {transform:scale(1);      box-shadow:0 0 0 rgba(255,26,26,0)}
+  7%   {transform:scale(1.045);  box-shadow:0 8px 20px rgba(255,26,26,.30)}
+  14%  {transform:scale(1);      box-shadow:0 0 0 rgba(255,26,26,0)}
+  21%  {transform:scale(1.028);  box-shadow:0 5px 14px rgba(255,26,26,.20)}
+  30%  {transform:scale(1);      box-shadow:0 0 0 rgba(255,26,26,0)}
+  100% {transform:scale(1);      box-shadow:0 0 0 rgba(255,26,26,0)}
+}
 .warn{margin:10px 0 0;font-size:12.5px;font-weight:600;color:#777;max-width:520px;line-height:1.5}
 .trust{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 .chip{border:1px solid var(--line);border-radius:999px;padding:8px 15px;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;background:#fff;display:inline-flex;gap:7px;align-items:center}
@@ -383,15 +403,13 @@ footer img.flogo{width:120px;margin:0 auto 20px}
       <div class="hero-main">
       <p class="kicker kickbar" style="margin:0">Colección limitada</p>
 
-      <div class="tirada" id="tirada">
-        <div class="t-head">
-          <span class="t-serie">Serie 1</span>
-          <span class="t-restan"><b id="restan">300</b> de <span id="tiraje">300</span> disponibles</span>
-        </div>
-        <div class="t-bar"><span id="tbar" style="width:0%"></span></div>
-        <p class="t-pie">Cada figura sale numerada a mano en su certificado. Cuando se acaben las <span id="tiraje2">300</span>, se acaban.</p>
+      <div class="count" id="count" role="timer" aria-label="Tiempo restante de la colección">
+        <div class="cbox"><div class="cnum" id="d">00</div><div class="clab">DÍAS</div></div>
+        <div class="cbox"><div class="cnum" id="h">00</div><div class="clab">HORAS</div></div>
+        <div class="cbox"><div class="cnum" id="m">00</div><div class="clab">MINUTOS</div></div>
+        <div class="cbox"><div class="cnum" id="s">00</div><div class="clab">SEGUNDOS</div></div>
       </div>
-      <p class="warn">Tirada única y numerada. No habrá reimpresión de la Serie 1.</p>
+      <p class="warn">Una vez que el contador llegue a 0, esta colección no volverá a estar disponible. Jamás.</p>
 
       <h1><span class="l1">Leyendas JDM</span><span class="l2">15 iconos únicos</span></h1>
 
@@ -671,7 +689,7 @@ footer img.flogo{width:120px;margin:0 auto 20px}
         <details><summary>¿Todos tienen versión dorada?</summary><p>Sí. Los 15 modelos tienen versión Gold Chrome secreta, con 1/500 de probabilidad por caja. El pack de colección completa garantiza al menos uno.</p></details>
         <details><summary>¿Qué incluye cada caja?</summary><p>La figura de 7 cm en resina a color, y nada más. Viene protegida dentro de una caja completamente cerrada, sin ninguna imagen ni pista de la pieza que hay dentro: hasta que la abres, no sabes cuál te ha tocado.</p></details>
         <details><summary>¿Cuánto cuesta el envío?</summary><p>El envío es gratuito. Recibirás el número de seguimiento por email en cuanto tu pedido salga.</p></details>
-        <details><summary>¿Cuándo dejará de estar disponible?</summary><p>La Serie 1 es una tirada de 300 unidades numeradas. Cuando se agoten, no se reimprime: cada figura lleva su número de unidad en el certificado, así que la cifra que ves es real.</p></details>
+        <details><summary>¿Cuándo dejará de estar disponible?</summary><p>Cuando el contador llegue a 0, esta colección no volverá a fabricarse. Jamás.</p></details>
       </div>
     </div>
   </section>
@@ -971,36 +989,33 @@ addEventListener('scroll', () => {
   sticky.classList.toggle('show', scrollY > 520 && packsTop > innerHeight * 0.9);
 }, {passive:true});
 
-/* ================= TIRADA NUMERADA =================
-   Sustituye al antiguo contador de tiempo (fecha inventada, poco creible).
-   Aqui la escasez es REAL: son las unidades fabricadas de la Serie 1.
-   TIRAJE   = unidades producidas.
-   VENDIDAS = debe venir del backend (/api/tirada). El valor de abajo es el
-              de arranque mientras no exista ese endpoint.                   */
-const TIRAJE = 300;
-let VENDIDAS = 86;
+/* ================= COUNTDOWN ================= */
+const TARGET = new Date('2026-12-31T23:59:59+01:00').getTime();
+const pad = n => String(n).padStart(2,'0');
+const previo = {d:null,h:null,m:null,s:null};
 
-function pintarTirada(){
-  const quedan = Math.max(0, TIRAJE - VENDIDAS);
-  const $r = $('#restan');
-  if(!$r) return;
-  $r.textContent = quedan;
-  $('#tiraje').textContent  = TIRAJE;
-  $('#tiraje2').textContent = TIRAJE;
-  $('#tbar').style.width = (VENDIDAS / TIRAJE * 100) + '%';
-  if(quedan === 0){
-    $('#tirada').classList.add('agotada');
-    $r.textContent = 'Agotada';
+function golpear(id, fuerte){
+  const caja = $('#'+id).closest('.cbox');
+  caja.classList.remove('beat','beat-fuerte');
+  void caja.offsetWidth;                       // reinicia la animación
+  caja.classList.add(fuerte ? 'beat-fuerte' : 'beat');
+}
+
+function tick(){
+  const diff = Math.max(0, TARGET - Date.now());
+  const t = Math.floor(diff/1000);
+  const v = {d:pad(Math.floor(t/86400)), h:pad(Math.floor(t%86400/3600)),
+             m:pad(Math.floor(t%3600/60)), s:pad(t%60)};
+  const primera = previo.s === null;
+  for (const k of ['d','h','m','s']){
+    if (previo[k] !== v[k]){
+      $('#'+k).textContent = v[k];
+      if (!primera) golpear(k, k !== 's');     // segundos suave, resto más fuerte
+      previo[k] = v[k];
+    }
   }
 }
-pintarTirada();
-
-/* Cuando exista el endpoint, esto mantiene el numero al dia sin tocar nada mas.
-   Debe devolver { vendidas: <n> }. Si falla, se queda el valor inicial. */
-fetch('/api/tirada')
-  .then(r => r.ok ? r.json() : null)
-  .then(d => { if(d && Number.isFinite(d.vendidas)){ VENDIDAS = d.vendidas; pintarTirada(); } })
-  .catch(() => {});
+tick(); setInterval(tick, 1000);
 
 /* ================= HISTORIA: cambiar texto del CTA maestro ================= */
 const hm = document.querySelector('.hmaster');
