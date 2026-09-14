@@ -1,12 +1,12 @@
 {
   "name": "sscarsgarage",
-  "version": "2.0.0-auth-garage",
+  "version": "2.0.0-gamification",
   "private": true,
   "type": "module",
-  "description": "SSCARS GARAGE 2.0 - Auth, Garage & Digital Collection",
+  "description": "SSCARS GARAGE 2.0 - Daily Reward, Digital Cards & Gamification Loop",
   "scripts": {
     "dev": "npx serve public -l 3000",
-    "test": "node test/sorteo.test.mjs && node test/fabricacion.test.mjs && node test/catalogo.test.mjs && node test/supabase-foundation.test.mjs && node test/auth-garage-collection.test.mjs"
+    "test": "node test/sorteo.test.mjs && node test/fabricacion.test.mjs && node test/catalogo.test.mjs && node test/supabase-foundation.test.mjs && node test/auth-garage-collection.test.mjs && node test/daily-reward-gamification.test.mjs"
   },
   "dependencies": {
     "stripe": "^16.12.0"

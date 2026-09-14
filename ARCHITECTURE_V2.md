@@ -1,164 +1,162 @@
 # 🏛️ ARQUITECTURA DEL SISTEMA — SSCARS GARAGE 2.0 (V2)
 
 > **Documento:** Especificación Técnica y Arquitectura del Sistema  
-> **Versión:** 2.1.1-AUTH-GARAGE-AUDIT-FINAL  
+> **Versión:** 2.2.0-GAMIFICATION-DAILY-REWARDS  
 > **Fecha:** 2026-09-14  
-> **Estado:** Fase 2.1 (Auditoría y Corrección Final de Auth + Garage + Timezone) Completada y Testeada
+> **Estado:** Fase 3 (Daily Reward + Cartas Digitales + Gamificación XP) Completada y Testeada
 
 ---
 
 ## 📑 ÍNDICE
 
 1. [Resumen Ejecutivo y Estado de Fases](#1-resumen-ejecutivo-y-estado-de-fases)
-2. [Arquitectura de Autenticación: Fuente Única de Verdad](#2-arquitectura-de-autenticación-fuente-única-de-verdad)
-3. [Modelo de Propiedad de Cartas: cars ➔ cards ➔ user_cards](#3-modelo-de-propiedad-de-cartas)
-4. [Cálculo Centralizado XP ➔ Level (PostgreSQL Authority)](#4-cálculo-centralizado-xp--level)
-5. [Día de Negocio y Timezone: Europe/Madrid](#5-día-de-negocio-y-timezone-europemadrid)
-6. [Seguridad y Políticas RLS Aplicadas](#6-seguridad-y-políticas-rls-aplicadas)
-7. [Persistencia y Coexistencia V1 / V2](#7-persistencia-y-coexistencia-v1--v2)
-8. [Esquema de Base de Datos y Migraciones Versionadas](#8-esquema-de-base-de-datos-y-migraciones-versionadas)
-9. [Funcionalidades Deliberadamente Pospuestas](#9-funcionalidades-deliberadamente-pospuestas)
+2. [Ciclo de Gamificación y Flujo Daily Drop](#2-ciclo-de-gamificación-y-flujo-daily-drop)
+3. [Motor de Recompensas Diarias (PostgreSQL Authority)](#3-motor-de-recompensas-diarias)
+4. [Política Anti-Duplicados de Cartas](#4-política-anti-duplicados-de-cartas)
+5. [Cálculo de Racha (Daily Streak) y Timezone Europe/Madrid](#5-cálculo-de-racha-y-timezone-europemadrid)
+6. [Gestión de XP, Ledger Idempotente y Niveles](#6-gestión-de-xp-ledger-idempotente-y-niveles)
+7. [Integración con Inventario Gold (100 unidades Físicas)](#7-integración-con-inventario-gold)
+8. [Seguridad, Aislamiento RLS y Permisos RPC](#8-seguridad-aislamiento-rls-y-permisos-rpc)
+9. [Persistencia y Coexistencia V1 / V2](#9-persistencia-y-coexistencia-v1--v2)
+10. [Esquema de Base de Datos y Migraciones Versionadas](#10-esquema-de-base-de-datos-y-migraciones-versionadas)
+11. [Funcionalidades Deliberadamente Pospuestas](#11-funcionalidades-deliberadamente-pospuestas)
 
 ---
 
 ## 1. RESUMEN EJECUTIVO Y ESTADO DE FASES
 
-SSCARS Garage 2.0 evoluciona el modelo de tienda estática hacia una plataforma **Phygital** (Físico + Digital) con garantías criptográficas y relacionales.
+SSCARS Garage 2.0 une la colección física con un bucle de retención y gamificación digital diario.
 
 ### Estado Actual de Fases:
-- **✅ FASE 1 (Foundation):** Esquema relacional en Supabase PostgreSQL, Storage buckets, catálogo de 15 coches e inventario atómico Gold (100 unidades).
-- **✅ PARCHE HARDENING (R1–R5):** Protección de perfiles, revocación de RPCs públicas, recompensa diaria server-side y `search_path` seguro.
-- **✅ FASE 2 & 2.1 (Auth + Garage + Colección + Auditoría):**
-  - **Auth:** Supabase GoTrue como autoridad única. La cache local de sesión se purga automáticamente ante respuestas HTTP 401/403.
-  - **Colección:** Modelo estricto `cars` ➔ `cards` ➔ `user_cards`. Los 15 slots de la UI no confieren propiedad; la propiedad real procede exclusivamente de `user_cards` filtrada por RLS (`auth.uid() = user_id`).
-  - **XP ➔ Level:** Función inmutable `public.calculate_driver_level(p_xp)` como única fórmula oficial en PostgreSQL.
-  - **Día de Negocio:** Timezone oficial fijada a `Europe/Madrid` en `claim_daily_reward_atomic()`.
-  - **V1 Intacta:** Carrito en `localStorage` (`sscars_cart_v1`) y checkout de Stripe preservados al 100%.
+- **✅ FASE 1 (Foundation):** Tablas maestras, Storage, catálogo y Gold inventory en Supabase.
+- **✅ HARDENING (R1–R5):** Protección de perfiles, permisos RPC y search_path seguro.
+- **✅ FASE 2 & 2.1 (Auth + Garage + Colección):** Autenticación GoTrue, álbum de 15 cartas JDM y RLS estricto por usuario.
+- **✅ FASE 3 (Daily Reward + Cartas Digitales + XP):**
+  - Motor de Daily Drop server-side (`claim_daily_reward_atomic()`).
+  - Asignación atómica de cartas digitales a `public.user_cards`.
+  - Política de duplicados con conversión a **Bonus XP (+250 XP)** cuando el catálogo estándar está completo.
+  - Sorteo de Gold Chase (1/500) sincronizado con el inventario físico de 100 unidades.
+  - Timezone comercial de reinicio diario fijada en **`Europe/Madrid`**.
+  - Interfaz interactiva de Daily Drop y modal de reveal en `/garage.html`.
 
 ---
 
-## 2. ARQUITECTURA DE AUTENTICACIÓN: FUENTE ÚNICA DE VERDAD
-
-La autenticación utiliza exclusivamente **Supabase Auth (GoTrue)**.
+## 2. CICLO DE GAMIFICACIÓN Y FLUJO DAILY DROP
 
 ```
-[CLIENTE: public/js/auth.js]
-       │
-       ├── POST /auth/v1/signup ─────────► [Crea usuario en auth.users]
-       │                                         │
-       │                                         ▼ (Trigger: handle_new_user)
-       │                                   [Crea perfil en public.profiles]
-       │
-       ├── POST /auth/v1/token (login) ──► [Emite JWT firmado por Supabase]
-       │                                         │
-       │                                         ▼
-       │                                   [Cache de sesión en localStorage: sscars_auth_session_v2]
-       │
-       └── Peticiones /rest/v1/... ──────► [Envía Authorization: Bearer <JWT>]
-                                                 │
-                                                 ├── Token Válido ──► PostgREST resuelve RLS (auth.uid())
-                                                 └── Token Inválido (401) ──► Invalida cache local y emite Logout
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────────────┐
+│  VISITANTE   │ ──► │    LOGIN     │ ──► │  MI GARAJE   │ ──► │ 🎁 ABRIR DAILY DROP  │
+└──────────────┘     └──────────────┘     └──────────────┘     └──────────┬───────────┘
+                                                                          │
+                                                                          ▼
+                                                       ┌──────────────────────────────────────┐
+                                                       │ RPC: claim_daily_reward_atomic()     │
+                                                       │ (Identidad segura: auth.uid())       │
+                                                       └──────────────────┬───────────────────┘
+                                                                          │
+                                        ┌─────────────────────────────────┴─────────────────────────────────┐
+                                        ▼                                                                   ▼
+                         ┌─────────────────────────────┐                                     ┌─────────────────────────────┐
+                         │      SI TOCA CARTA JDM      │                                     │       SI TOCA XP BOOST      │
+                         │ 1. Busca carta no poseída   │                                     │ 1. Base 50 XP + 25 XP/racha │
+                         │ 2. Asigna a `user_cards`    │                                     │ 2. Registra en `xp_ledger`  │
+                         │ 3. Si ya las tiene todas:   │                                     │ 3. Recalcula nivel oficial  │
+                         │    Convierte a +250 XP bonus│                                     │                             │
+                         └─────────────────────────────┘                                     └─────────────────────────────┘
 ```
-
-### Respuestas a la Auditoría de Sesión:
-1. **¿Supabase gestiona la persistencia?** Sí, Supabase valida la firma criptográfica del JWT y el tiempo de expiración en cada petición REST/PostgREST.
-2. **¿Qué función cumple `sscars_auth_session_v2`?** Es estrictamente una **cache de transporte en cliente** para enviar el Bearer Token en las cabeceras HTTP. **No confiere autoridad ni permisos por sí misma**.
-3. **¿Puede haber divergencia de estado?** No: si Supabase devuelve HTTP 401 (token expirado/revocado) y el refresco falla, `auth.js` elimina inmediatamente la entrada local y notifica a la UI el estado de visitante.
 
 ---
 
-## 3. MODELO DE PROPIEDAD DE CARTAS
+## 3. MOTOR DE RECOMPENSAS DIARIAS
 
-La propiedad digital sigue una jerarquía relacional inmutable:
+Toda la lógica de probabilidades, asignación y validación se ejecuta en el procedimiento almacenado `claim_daily_reward_atomic()` (`009_seed_cards_and_daily_reward_engine.sql`):
 
-```
-┌────────────────────────────────┐
-│           TABLA CARS           │ ──► Define las 15 Leyendas JDM (Catálogo maestro)
-└───────────────┬────────────────┘
-                │ 1:N
-                ▼
-┌────────────────────────────────┐
-│           TABLA CARDS          │ ──► Define la carta y su código único (p. ej. CARD-R34-001)
-└───────────────┬────────────────┘
-                │ 1:N
-                ▼
-┌────────────────────────────────┐
-│        TABLA USER_CARDS        │ ──► Propiedad REAL de un usuario (user_id = auth.uid())
-└────────────────────────────────┘
-```
-
-- **Regla de Garaje:** Que la vista del Garaje dibuje 15 slots no significa que el usuario posea los coches. Los coches sin correspondencia en `user_cards` se renderizan como **`LOCKED`** ("No descubierta").
-- **Aislamiento RLS:** Un usuario nunca puede leer ni consultar las filas de `user_cards` de otro usuario.
+### Matriz de Probabilidades Server-Side:
+- **69.8% · Daily XP Boost:** $50\text{ XP} + (25\text{ XP} \times \text{racha})$ (hasta 500 XP máx).
+- **25.0% · Digital Card Drop:** Asignación garantizada de una carta que el usuario **no posea**.
+- **5.0% · Mega XP Boost:** $200\text{ XP} + (20\text{ XP} \times \text{racha})$.
+- **0.2% (1/500) · Gold Chase Card:** Carta secreta dorada sujeta a stock físico en `gold_inventory`.
 
 ---
 
-## 4. CÁLCULO CENTRALIZADO XP ➔ LEVEL
+## 4. POLÍTICA ANTI-DUPLICADOS DE CARTAS
 
-Para evitar duplicidad o discrepancias entre frontend y backend:
+Para evitar cartas repetidas inservibles en la colección digital:
+1. Al salir premio de carta, el motor busca una carta estándar que **no esté en `user_cards`** para ese usuario.
+2. Si el usuario ya posee las 15 cartas de la colección estándar: el servidor **convierte automáticamente la recompensa en +250 XP Bonus** (`duplicate_xp_bonus`).
+3. El cliente no interviene en la selección ni en la conversión.
 
+---
+
+## 5. CÁLCULO DE RACHA (DAILY STREAK) Y TIMEZONE `Europe/Madrid`
+
+- **Día Comercial:** Evaluado con `(CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Madrid')::date`. El día cambia a las 00:00:00 hora peninsular española independientemente del horario UTC o cambios de verano/invierno.
+- **Racha Consecutiva:**
+  - Si `last_daily_claim` fue ayer en horario de Madrid $\rightarrow$ `daily_streak := daily_streak + 1`.
+  - Si no hubo reclamo ayer $\rightarrow$ `daily_streak := 1`.
+  - Si ya reclamó hoy $\rightarrow$ Aborta devolviendo `{ alreadyClaimed: true }` sin alterar la racha ni duplicar puntos.
+
+---
+
+## 6. GESTIÓN DE XP, LEDGER IDEMPOTENTE Y NIVELES
+
+- **Ledger Inmutable:** Cada ganancia de XP se registra en `public.xp_ledger` con clave única `daily_{user_id}_{date}`.
 - **Fórmula Oficial Única:**
   $$\text{Level} = \left\lfloor \left( \frac{\text{XP}}{100} \right)^{1 / 1.8} \right\rfloor + 1$$
-- **Implementación Centralizada en PostgreSQL (`008_driver_level_and_timezone.sql`):**
-  ```sql
-  CREATE OR REPLACE FUNCTION public.calculate_driver_level(p_xp BIGINT)
-  RETURNS INTEGER AS $$
-  BEGIN
-      RETURN GREATEST(1, FLOOR(POWER(GREATEST(0, p_xp)::float / 100.0, 1.0 / 1.8))::integer + 1);
-  END;
-  $$ LANGUAGE plpgsql IMMUTABLE SET search_path = public, pg_temp;
-  ```
-- Todas las funciones que modifican experiencia (`award_xp_atomic`, `claim_daily_reward_atomic`) invocan `public.calculate_driver_level()` al actualizar `public.profiles`.
+  Ejecutada de forma centralizada por `public.calculate_driver_level(p_xp)`.
 
 ---
 
-## 5. DÍA DE NEGOCIO Y TIMEZONE: Europe/Madrid
+## 7. INTEGRACIÓN CON INVENTARIO GOLD
 
-- **Definición de Día Comercial:** El reinicio diario de recompensas y rachas se calcula a las **00:00:00 hora peninsular española (`Europe/Madrid`)**.
-- **Manejo de Horario de Verano/Invierno:** PostgreSQL gestiona nativamente la base de datos IANA (`CET` en invierno UTC+1, `CEST` en verano UTC+2), evitando que los usuarios experimenten cambios de día a las 01:00 o 02:00 AM UTC.
-- **Implementación:**
-  ```sql
-  v_today DATE := (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Madrid')::date;
-  ```
+- Si el sorteo diario concede la edición Gold Chase (1/500), se invoca internamente `public.allocate_gold_atomic(car_id)` con bloqueo `FOR UPDATE`.
+- Si el cupo físico de ese coche está completo, se convierte a **Mega XP (+300 XP)**, garantizando que **jamás se sobrepasen las 100 unidades físicas de Gold**.
 
 ---
 
-## 6. SEGURIDAD Y POLÍTICAS RLS APLICADAS
+## 8. SEGURIDAD, AISLAMIENTO RLS Y PERMISOS RPC
 
-| Tabla | Política RLS | Acceso |
+- **`claim_daily_reward_atomic()`:** `REVOKE ALL FROM PUBLIC, anon; GRANT EXECUTE TO authenticated, service_role;`
+- **Identidad:** Forzada desde `auth.uid()`. Un usuario no puede reclamar para otro.
+- **Protección contra Concurrencia:** Bloqueo pesimista `SELECT ... FOR UPDATE` sobre la fila del perfil y restricción `UNIQUE(user_id, reward_date)` en `daily_rewards`.
+
+---
+
+## 9. PERSISTENCIA Y COEXISTENCIA V1 / V2
+
+| Componente | Estado V1 | Estado V2 en Fase 3 |
 |---|---|---|
-| `profiles` | `profiles_select_public`<br>`profiles_update_own` | SELECT público.<br>UPDATE restringido a `(username, display_name, avatar_url)` con trigger de bloqueo para `role`, `xp`, `level`, `daily_streak`. |
-| `user_cards` | `user_cards_select_own` | SELECT exclusivo para `auth.uid() = user_id`.<br>Escritura exclusiva para `service_role`. |
-| `cars` / `cards` | `cars_select_public`<br>`cards_select_public` | SELECT público (`active = true`). Escritura bloqueada. |
-| `daily_rewards` | `daily_rewards_select_own` | SELECT exclusivo para `auth.uid() = user_id`. |
-| `xp_ledger` | `xp_ledger_select_own` | SELECT exclusivo para `auth.uid() = user_id`. |
-| `gold_inventory` | `gold_inventory_select_public` | SELECT público. Escritura exclusiva para `service_role`. |
+| **Tienda y Carrito** | `localStorage` (`sscars_cart_v1`) intacto. | Coexiste sin interferencias. |
+| **Checkout Stripe** | Sesiones clásicas directas. | Intacto. |
+| **Gamificación Diaria** | No existía en V1. | Operativa en Supabase PostgreSQL. |
+| **Colección Digital** | No existía en V1. | Operativa en Supabase (`user_cards`). |
 
 ---
 
-## 7. ESQUEMA DE BASE DE DATOS Y MIGRACIONES VERSIONADAS
+## 10. ESQUEMA DE BASE DE DATOS Y MIGRACIONES
 
 ```
 supabase/migrations/
 ├── 001_initial_schema.sql            (16 tablas base + Enums + Constraints)
 ├── 002_rls_policies.sql              (Políticas RLS base)
-├── 003_storage_buckets.sql           (Buckets: car-card-renders, build-renders, user-assets)
+├── 003_storage_buckets.sql           (Buckets de Supabase Storage)
 ├── 004_seed_catalog.sql              (15 coches JDM + 100 Golds + Tuning + Productos)
 ├── 005_functions_and_triggers.sql    (Triggers y RPCs atómicas)
 ├── 006_security_hardening.sql        (Parche de hardening R1–R5)
 ├── 007_user_cards_private_rls.sql    (Aislamiento estricto de colección por usuario)
-└── 008_driver_level_and_timezone.sql (Función inmutable XP->Level y timezone Europe/Madrid)
+├── 008_driver_level_and_timezone.sql (Función inmutable XP->Level y timezone Europe/Madrid)
+└── 009_seed_cards_and_daily_reward_engine.sql (Seed de 30 cartas + Motor Daily Drop y duplicados)
 ```
 
 ---
 
-## 8. FUNCIONALIDADES DELIBERADAMENTE POSPUESTAS
+## 11. FUNCIONALIDADES DELIBERADAMENTE POSPUESTAS
 
-Las siguientes funcionalidades permanecen expresamente fuera de esta fase para garantizar estabilidad:
-1. **Fase 3:** Webhook de Stripe V2 con asignación automática de `user_cards` y doble escritura.
-2. **Fase 4:** Módulo interactivo de Tuning 3D y `build_snapshots`.
-3. **Fase 5:** Pipeline de generación de Car Cards HD en Supabase Storage.
-4. **Fase 6:** Adaptador de Printful y despacho de **SSCARS Gift Box**.
-5. **Fase 7:** Interfaz interactiva de Daily Reward en cliente.
+Las siguientes áreas quedan expresamente para fases posteriores:
+1. **Fase 4:** Configurador de Tuning 3D y `build_snapshots`.
+2. **Fase 5:** Motor de renders HD de Car Cards y carga en Supabase Storage.
+3. **Fase 6:** Adaptador de Printful y despacho segregado de la **SSCARS Gift Box**.
+4. **Fase 7:** Integración de compra de builds y doble escritura en webhook de Stripe.
 
 ---
-*Fin del documento ARCHITECTURE_V2.md (Versión 2.1.1)*
+*Fin del documento ARCHITECTURE_V2.md (Versión 2.2.0)*

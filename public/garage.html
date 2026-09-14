@@ -185,6 +185,128 @@
     .btn-logout { color: #FF6666; border-color: rgba(255,102,102,0.3); }
     .btn-logout:hover { background: rgba(255,0,0,0.1); }
 
+    /* Daily Reward Card */
+    .daily-drop-card {
+      background: linear-gradient(135deg, #181414, #121212);
+      border: 1px solid rgba(255, 26, 26, 0.3);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .daily-drop-card::before {
+      content: "";
+      position: absolute;
+      top: -50%; right: -20%;
+      width: 250px; height: 250px;
+      background: radial-gradient(circle, rgba(255,26,26,0.15), transparent 70%);
+      pointer-events: none;
+    }
+    .daily-drop-info h3 {
+      font-family: var(--impact);
+      font-size: 24px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .daily-drop-info p {
+      color: var(--text-muted);
+      font-size: 13px;
+      max-width: 520px;
+      line-height: 1.5;
+    }
+    .btn-claim-drop {
+      background: linear-gradient(135deg, var(--red), #FF5500);
+      color: #FFF;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 14px 28px;
+      border-radius: 10px;
+      white-space: nowrap;
+      box-shadow: 0 6px 20px rgba(255,26,26,0.4);
+      transition: all 0.2s;
+    }
+    .btn-claim-drop:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(255,26,26,0.6); }
+    .btn-claim-drop:disabled {
+      background: #222;
+      color: #666;
+      border: 1px solid #333;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .daily-claimed-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,255,0,0.1);
+      color: #55FF55;
+      border: 1px solid rgba(0,255,0,0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Reward Reveal Modal */
+    .reward-box {
+      background: var(--card-bg);
+      border: 2px solid var(--red);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 440px;
+      padding: 36px 28px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(255,26,26,0.3);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .reward-icon { font-size: 54px; margin-bottom: 12px; }
+    .reward-title {
+      font-family: var(--impact);
+      font-size: 28px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .reward-desc { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+    .reward-card-preview {
+      background: #0E0E0E;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .reward-card-preview.is-gold {
+      border-color: var(--gold);
+      background: linear-gradient(145deg, #1A1700, #111);
+    }
+    .reward-xp-pill {
+      display: inline-block;
+      background: rgba(255,85,0,0.15);
+      color: #FF5500;
+      border: 1px solid rgba(255,85,0,0.4);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
     /* Stats Overview */
     .collection-header {
       display: flex;
@@ -522,6 +644,17 @@
       </div>
     </div>
 
+    <!-- Daily Drop Card -->
+    <div class="daily-drop-card" id="dailyDropCard">
+      <div class="daily-drop-info">
+        <h3>🎁 Daily Drop · Recompensa Diaria</h3>
+        <p id="dailyDropSubtitle">Conéctate cada día (reinicio a las 00:00 hora de Madrid) para ganar XP, aumentar tu racha y desbloquear cartas JDM para tu colección.</p>
+      </div>
+      <div id="dailyDropAction">
+        <button class="btn-claim-drop" id="btnClaimDrop" onclick="handleClaimDailyReward()">Abrir Recompensa</button>
+      </div>
+    </div>
+
     <!-- Collection Header & Filters -->
     <div class="collection-header">
       <div class="collection-title">
@@ -623,6 +756,31 @@
       </div>
       <button type="submit" class="btn-submit" id="btnEditProfSubmit">Guardar Cambios</button>
     </form>
+  </div>
+</div>
+
+<!-- ================= MODAL REVEAL DE DAILY REWARD ================= -->
+<div class="modal-overlay" id="dailyRewardModal">
+  <div class="reward-box">
+    <button class="modal-close" onclick="closeDailyRewardModal()" aria-label="Cerrar modal">&times;</button>
+    <div class="reward-icon" id="rewardModalIcon">🎁</div>
+    <div class="reward-title" id="rewardModalTitle">¡Recompensa Reclamada!</div>
+    <div class="reward-desc" id="rewardModalDesc">Has recibido tu recompensa de conexión diaria.</div>
+    
+    <div id="rewardModalCardWrap" style="display: none;" class="reward-card-preview">
+      <div style="font-size: 11px; font-weight: 800; color: var(--red); margin-bottom: 4px;" id="rewardModalCardBadge">NUEVA CARTA</div>
+      <div style="font-size: 16px; font-weight: 800;" id="rewardModalCardName">El Emperador Azul</div>
+      <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" id="rewardModalCardModel">Nissan Skyline GT-R R34</div>
+      <div style="font-size: 11px; color: #AAA;" id="rewardModalCardCode">CARD-R34-STD</div>
+    </div>
+
+    <div>
+      <span class="reward-xp-pill" id="rewardModalXp">+75 XP</span>
+    </div>
+
+    <div style="font-size: 13px; color: #FF9900; font-weight: 700; margin-bottom: 20px;" id="rewardModalStreak">🔥 Racha de 1 día</div>
+
+    <button class="btn-submit" onclick="closeDailyRewardModal()" style="width: 100%;">Continuar</button>
   </div>
 </div>
 

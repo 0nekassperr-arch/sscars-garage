@@ -332,6 +332,37 @@
     },
 
     /**
+     * Reclama la recompensa diaria atómica server-side
+     */
+    async claimDailyReward() {
+      if (!this.isAuthenticated()) throw new Error('Debes iniciar sesión para reclamar tu recompensa.');
+      return restFetch('rpc/claim_daily_reward_atomic', { method: 'POST', body: '{}' });
+    },
+
+    /**
+     * Consulta el estado de la recompensa diaria
+     */
+    async getDailyRewardStatus() {
+      if (!this.isAuthenticated()) return { canClaim: false, isAuth: false };
+      const profile = await this.getProfile();
+      if (!profile) return { canClaim: false, isAuth: false };
+
+      const nowMadrid = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+      let alreadyClaimed = false;
+      if (profile.last_daily_claim) {
+        const lastMadrid = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(profile.last_daily_claim));
+        alreadyClaimed = (nowMadrid === lastMadrid);
+      }
+      return {
+        canClaim: !alreadyClaimed,
+        isAuth: true,
+        streak: profile.daily_streak || 0,
+        lastClaimDate: profile.last_daily_claim,
+        todayMadrid: nowMadrid
+      };
+    },
+
+    /**
      * Obtiene las cartas poseídas por el usuario autenticado (user_cards con JOIN)
      */
     async getUserCollection() {

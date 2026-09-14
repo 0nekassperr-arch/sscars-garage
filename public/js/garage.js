@@ -43,19 +43,35 @@
 
   async function loadGarageData() {
     try {
-      const [profile, cars, userCards] = await Promise.all([
+      const [profile, cars, userCards, dailyStatus] = await Promise.all([
         window.SSCARS_AUTH.getProfile(),
         window.SSCARS_AUTH.getCars().catch(() => getFallbackCars()),
-        window.SSCARS_AUTH.getUserCollection().catch(() => [])
+        window.SSCARS_AUTH.getUserCollection().catch(() => []),
+        window.SSCARS_AUTH.getDailyRewardStatus().catch(() => ({ canClaim: false }))
       ]);
 
       currentCars = cars || getFallbackCars();
       currentUserCards = userCards || [];
 
       renderProfile(profile);
+      renderDailyDropStatus(dailyStatus);
       renderCollection();
     } catch (err) {
       console.error('Error cargando el garaje:', err);
+    }
+  }
+
+  function renderDailyDropStatus(dailyStatus) {
+    const actionEl = $('dailyDropAction');
+    const subEl = $('dailyDropSubtitle');
+    if (!actionEl) return;
+
+    if (dailyStatus && dailyStatus.canClaim) {
+      actionEl.innerHTML = `<button class="btn-claim-drop" id="btnClaimDrop" onclick="handleClaimDailyReward()">🎁 Abrir Recompensa</button>`;
+      if (subEl) subEl.textContent = '¡Tu recompensa de conexión de hoy está lista! Ábrela para conseguir XP, cartas o un posible Gold Chase.';
+    } else {
+      actionEl.innerHTML = `<div class="daily-claimed-badge">✅ Reclamado hoy · Vuelve mañana</div>`;
+      if (subEl) subEl.textContent = 'Has reclamado tu Daily Drop de hoy. El próximo estará disponible a las 00:00:00 (Hora peninsular española).';
     }
   }
 
@@ -387,6 +403,82 @@
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = 'Guardar Cambios'; }
     }
+  };
+
+  window.handleClaimDailyReward = async function() {
+    const btn = $('btnClaimDrop');
+    if (btn) { btn.disabled = true; btn.textContent = 'Abriendo Daily Drop...'; }
+    try {
+      const res = await window.SSCARS_AUTH.claimDailyReward();
+      if (res && res.success) {
+        openDailyRewardModal(res);
+      } else if (res && res.alreadyClaimed) {
+        alert(res.message || 'Ya has reclamado tu recompensa de hoy.');
+      }
+      loadGarageData();
+    } catch (err) {
+      alert(err.message || 'Error al reclamar recompensa diaria');
+      if (btn) { btn.disabled = false; btn.textContent = '🎁 Abrir Recompensa'; }
+    }
+  };
+
+  window.openDailyRewardModal = function(data) {
+    const modal = $('dailyRewardModal');
+    if (!modal) return;
+
+    const reward = data.reward || {};
+    const xp = data.xp || {};
+    const isGold = Boolean(reward.isGold);
+    const isCard = reward.type === 'card';
+
+    const iconEl = $('rewardModalIcon');
+    const titleEl = $('rewardModalTitle');
+    const descEl = $('rewardModalDesc');
+    const cardWrap = $('rewardModalCardWrap');
+    const cardBadge = $('rewardModalCardBadge');
+    const cardName = $('rewardModalCardName');
+    const cardModel = $('rewardModalCardModel');
+    const cardCode = $('rewardModalCardCode');
+    const xpEl = $('rewardModalXp');
+    const streakEl = $('rewardModalStreak');
+
+    if (isGold) {
+      if (iconEl) iconEl.textContent = '✨';
+      if (titleEl) titleEl.textContent = '¡GOLD CHROME DROP!';
+      if (descEl) descEl.textContent = '¡Increíble! Has desbloqueado una carta secreta Gold Chrome.';
+    } else if (isCard) {
+      if (iconEl) iconEl.textContent = '🃏';
+      if (titleEl) titleEl.textContent = '¡Nueva Carta Desbloqueada!';
+      if (descEl) descEl.textContent = 'Se ha añadido un nuevo coche a tu Garaje y álbum de colección.';
+    } else {
+      if (iconEl) iconEl.textContent = '⚡';
+      if (titleEl) titleEl.textContent = '¡Experiencia Obtenida!';
+      if (descEl) descEl.textContent = reward.note || 'Has recibido tu bonus de conexión diaria.';
+    }
+
+    if (cardWrap) {
+      if (isCard) {
+        cardWrap.style.display = 'block';
+        cardWrap.className = 'reward-card-preview' + (isGold ? ' is-gold' : '');
+        if (cardBadge) cardBadge.textContent = isGold ? '✨ EDICIÓN GOLD CHROME' : (reward.rarity ? reward.rarity.toUpperCase() : 'NUEVA CARTA');
+        if (cardName) cardName.textContent = reward.carName || 'Vehículo JDM';
+        if (cardModel) cardModel.textContent = reward.code || '';
+        if (cardCode) cardCode.textContent = 'Añadida a tu colección';
+      } else {
+        cardWrap.style.display = 'none';
+      }
+    }
+
+    if (xpEl) xpEl.textContent = `+${xp.awarded || 50} XP`;
+    if (streakEl) streakEl.textContent = `🔥 Racha de ${data.streak || 1} día(s)`;
+
+    modal.classList.add('open');
+  };
+
+  window.closeDailyRewardModal = function() {
+    const modal = $('dailyRewardModal');
+    if (modal) modal.classList.remove('open');
+    loadGarageData();
   };
 
 })();
