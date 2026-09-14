@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Garaje & Colección Digital · SSCARS Garage</title>
+  <meta name="description" content="Tu Garaje digital de SSCARS: consulta tus cartas de coches JDM desbloqueadas, estadísticas y progreso de conductor.">
+  <link rel="icon" href="images/logo-sscars-cropped.jpg" type="image/jpeg">
+  <style>
+    :root {
+      --bg: #0A0A0A;
+      --card-bg: #141414;
+      --card-border: #242424;
+      --card-hover: #333333;
+      --red: #FF1A1A;
+      --gold: #FFD700;
+      --gold-bg: rgba(255, 215, 0, 0.08);
+      --text: #F0F0F0;
+      --text-muted: #888888;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --impact: Impact, 'Arial Narrow', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+    }
+    .hbar {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo img { height: 28px; width: auto; display: block; }
+    .nav-links { display: flex; align-items: center; gap: 16px; }
+    .nav-btn {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 8px 14px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .nav-btn-store {
+      color: #FFF;
+      border: 1px solid #333;
+    }
+    .nav-btn-store:hover { border-color: var(--red); color: var(--red); }
+    .nav-btn-auth {
+      background: var(--red);
+      color: #FFF;
+    }
+    .nav-btn-auth:hover { background: #e00000; }
+
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px 80px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Hero / Profile Card */
+    .profile-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 36px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 24px;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .profile-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, var(--red), var(--gold));
+    }
+    .avatar-box {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #222;
+      border: 2px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 900;
+      color: #FFF;
+      overflow: hidden;
+    }
+    .avatar-box img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-info h1 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .profile-info .username {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .level-badge {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: rgba(255, 26, 26, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(255, 26, 26, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .streak-badge {
+      font-size: 11px;
+      font-weight: 800;
+      background: rgba(255, 153, 0, 0.15);
+      color: #FF9900;
+      border: 1px solid rgba(255, 153, 0, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+      margin-left: 6px;
+    }
+    .xp-bar-wrap { max-width: 400px; }
+    .xp-bar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .xp-track {
+      background: #222;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .xp-fill {
+      background: linear-gradient(90deg, var(--red), #FF5500);
+      height: 100%;
+      width: 0%;
+      transition: width 0.6s ease;
+    }
+    .profile-actions { display: flex; flex-direction: column; gap: 8px; }
+    .btn-secondary {
+      background: #222;
+      color: #FFF;
+      border: 1px solid #333;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: #333; border-color: #555; }
+    .btn-logout { color: #FF6666; border-color: rgba(255,102,102,0.3); }
+    .btn-logout:hover { background: rgba(255,0,0,0.1); }
+
+    /* Stats Overview */
+    .collection-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .collection-title h2 {
+      font-family: var(--impact);
+      font-size: 32px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .collection-title p { color: var(--text-muted); font-size: 14px; }
+    .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-pill {
+      background: #181818;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .filter-pill.active, .filter-pill:hover {
+      background: #FFF;
+      color: #000;
+      border-color: #FFF;
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .car-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .car-card.owned {
+      border-color: #333;
+    }
+    .car-card.owned:hover {
+      transform: translateY(-4px);
+      border-color: var(--red);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+    }
+    .car-card.gold-card {
+      background: linear-gradient(145deg, #1A1700, #141414);
+      border-color: rgba(255, 215, 0, 0.4);
+    }
+    .car-card.gold-card:hover {
+      border-color: var(--gold);
+      box-shadow: 0 12px 32px rgba(255, 215, 0, 0.2);
+    }
+    .car-card.locked {
+      opacity: 0.5;
+      filter: grayscale(1);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .card-num {
+      font-family: var(--impact);
+      font-size: 20px;
+      color: var(--text-muted);
+    }
+    .card-rarity {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #222;
+      color: #AAA;
+    }
+    .rarity-legendary { background: rgba(255, 60, 0, 0.2); color: #FF4500; border: 1px solid rgba(255,60,0,0.4); }
+    .rarity-epic { background: rgba(160, 32, 240, 0.2); color: #B040FF; border: 1px solid rgba(160,32,240,0.4); }
+    .rarity-rare { background: rgba(0, 120, 255, 0.2); color: #0088FF; border: 1px solid rgba(0,120,255,0.4); }
+    .rarity-common { background: #222; color: #AAA; }
+    .rarity-gold { background: var(--gold-bg); color: var(--gold); border: 1px solid rgba(255,215,0,0.5); }
+
+    .card-img-wrap {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #0D0D0D;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-img-wrap img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      transition: transform 0.3s;
+    }
+    .car-card.owned:hover .card-img-wrap img { transform: scale(1.05); }
+    .card-lock-icon {
+      font-size: 32px;
+      color: #444;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 2px;
+    }
+    .card-model {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .card-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: #0E0E0E;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      margin-top: auto;
+    }
+    .stat-row { display: flex; justify-content: space-between; }
+    .stat-k { color: var(--text-muted); }
+    .stat-v { font-weight: 700; }
+    .card-serial {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      text-align: right;
+      letter-spacing: 0.05em;
+    }
+
+    /* Guest View */
+    .guest-view {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 60px 20px;
+      text-align: center;
+      max-width: 540px;
+      margin: 40px auto;
+    }
+    .guest-view h2 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .guest-view p {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    /* Modal / Auth Dialog */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      padding: 30px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px; right: 16px;
+      font-size: 20px;
+      color: var(--text-muted);
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { background: #222; color: #FFF; }
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 20px;
+    }
+    .modal-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+    }
+    .modal-tab.active {
+      color: #FFF;
+      border-bottom-color: var(--red);
+    }
+    .auth-form { display: flex; flex-direction: column; gap: 14px; }
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #CCC;
+      margin-bottom: 6px;
+    }
+    .input-group input {
+      width: 100%;
+      background: #0E0E0E;
+      border: 1px solid #333;
+      color: #FFF;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--red);
+    }
+    .btn-submit {
+      background: var(--red);
+      color: #FFF;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      margin-top: 6px;
+      transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #E00000; }
+    .auth-msg {
+      font-size: 13px;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      display: none;
+    }
+    .auth-msg.error { background: rgba(255,0,0,0.15); color: #FF6666; border: 1px solid rgba(255,0,0,0.3); display: block; }
+    .auth-msg.success { background: rgba(0,255,0,0.15); color: #66FF66; border: 1px solid rgba(0,255,0,0.3); display: block; }
+    .auth-footer-link {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .auth-footer-link:hover { color: #FFF; }
+
+    @media(max-width: 768px) {
+      .profile-card { grid-template-columns: 1fr; text-align: center; }
+      .avatar-box { margin: 0 auto; }
+      .xp-bar-wrap { margin: 0 auto; }
+      .profile-actions { flex-direction: row; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="hbar">
+    <a href="index.html" class="logo" aria-label="SSCARS Garage, Inicio">
+      <img src="images/logo-sscars-cropped.jpg" width="140" height="34" alt="SSCARS Garage Collections">
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-btn nav-btn-store">← Tienda</a>
+      <button id="authBtn" class="nav-btn nav-btn-auth">Iniciar Sesión</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Guest Fallback -->
+  <div id="guestSection" class="guest-view" style="display: none;">
+    <h2>🔐 Tu Garaje Digital</h2>
+    <p>Inicia sesión o crea tu cuenta para guardar tus cartas JDM, subir de nivel con XP y sincronizar tu colección en cualquier dispositivo.</p>
+    <button class="btn-submit" style="display:inline-block; padding: 12px 28px;" onclick="openAuthModal('login')">Entrar a mi Garaje</button>
+  </div>
+
+  <!-- Authenticated Garage -->
+  <div id="authSection" style="display: none;">
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <div class="avatar-box" id="avatarContainer">🏎️</div>
+      <div class="profile-info">
+        <h1>
+          <span id="profName">Conductor</span>
+          <span class="level-badge" id="profLevel">Nivel 1</span>
+          <span class="streak-badge" id="profStreak">🔥 0 días</span>
+        </h1>
+        <div class="username" id="profHandle">@driver</div>
+        <div class="xp-bar-wrap">
+          <div class="xp-bar-labels">
+            <span>Experiencia (XP)</span>
+            <span id="profXpText">0 / 100 XP</span>
+          </div>
+          <div class="xp-track">
+            <div class="xp-fill" id="profXpFill"></div>
+          </div>
+        </div>
+      </div>
+      <div class="profile-actions">
+        <button class="btn-secondary" onclick="openEditProfileModal()">Editar Perfil</button>
+        <button class="btn-secondary btn-logout" onclick="handleLogout()">Cerrar Sesión</button>
+      </div>
+    </div>
+
+    <!-- Collection Header & Filters -->
+    <div class="collection-header">
+      <div class="collection-title">
+        <h2>Álbum de Cartas JDM</h2>
+        <p id="collectionStats">Desbloqueadas: 0 / 15 · 0% Completado</p>
+      </div>
+      <div class="filter-pills">
+        <button class="filter-pill active" data-filter="all" onclick="filterCards('all')">Todas (15)</button>
+        <button class="filter-pill" data-filter="owned" onclick="filterCards('owned')">En Garaje (<span id="ownedCount">0</span>)</button>
+        <button class="filter-pill" data-filter="locked" onclick="filterCards('locked')">Bloqueadas (<span id="lockedCount">15</span>)</button>
+        <button class="filter-pill" data-filter="gold" onclick="filterCards('gold')">Gold Chase</button>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="cards-grid" id="cardsGrid">
+      <p style="color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">Cargando tu garaje...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL DE AUTENTICACIÓN ================= -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAuthModal()" aria-label="Cerrar modal">&times;</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tabLogin" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+      <button class="modal-tab" id="tabRegister" onclick="switchAuthTab('register')">Crear Cuenta</button>
+    </div>
+    
+    <div id="authMsg" class="auth-msg"></div>
+
+    <!-- Form Login -->
+    <form class="auth-form" id="formLogin" onsubmit="handleLogin(event)">
+      <div class="input-group">
+        <label for="loginEmail">Correo Electrónico</label>
+        <input type="email" id="loginEmail" required autocomplete="email">
+      </div>
+      <div class="input-group">
+        <label for="loginPass">Contraseña</label>
+        <input type="password" id="loginPass" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn-submit" id="btnLoginSubmit">Entrar al Garaje</button>
+      <div class="auth-footer-link" onclick="switchAuthTab('recover')">¿Has olvidado tu contraseña?</div>
+    </form>
+
+    <!-- Form Register -->
+    <form class="auth-form" id="formRegister" style="display: none;" onsubmit="handleRegister(event)">
+      <div class="input-group">
+        <label for="regEmail">Correo Electrónico</label>
+        <input type="email" id="regEmail" required autocomplete="email">
+      </div>
+      <div class="input-group">
+        <label for="regUsername">Nombre de Usuario (@)</label>
+        <input type="text" id="regUsername" placeholder="ej. ryosuke_fc" pattern="[a-zA-Z0-9_]{3,20}" title="3-20 caracteres alfanuméricos o guión bajo">
+      </div>
+      <div class="input-group">
+        <label for="regName">Nombre Completo / Alias</label>
+        <input type="text" id="regName" placeholder="ej. Ryosuke Takahashi">
+      </div>
+      <div class="input-group">
+        <label for="regPass">Contraseña (Mín. 6 caracteres)</label>
+        <input type="password" id="regPass" minlength="6" required autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn-submit" id="btnRegSubmit">Crear mi Garaje</button>
+    </form>
+
+    <!-- Form Recover -->
+    <form class="auth-form" id="formRecover" style="display: none;" onsubmit="handleRecover(event)">
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">Te enviaremos un correo con el enlace para restablecer tu contraseña.</p>
+      <div class="input-group">
+        <label for="recEmail">Correo Electrónico</label>
+        <input type="email" id="recEmail" required autocomplete="email">
+      </div>
+      <button type="submit" class="btn-submit" id="btnRecSubmit">Enviar Enlace</button>
+      <div class="auth-footer-link" onclick="switchAuthTab('login')">← Volver a Iniciar Sesión</div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= MODAL DE EDICIÓN DE PERFIL ================= -->
+<div class="modal-overlay" id="editProfileModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeEditProfileModal()" aria-label="Cerrar modal">&times;</button>
+    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 16px;">Editar Perfil</h3>
+    <div id="editProfMsg" class="auth-msg"></div>
+    <form class="auth-form" onsubmit="handleProfileUpdate(event)">
+      <div class="input-group">
+        <label for="editDisplayName">Nombre / Alias</label>
+        <input type="text" id="editDisplayName" required maxlength="64">
+      </div>
+      <div class="input-group">
+        <label for="editUsername">Nombre de Usuario (@)</label>
+        <input type="text" id="editUsername" required pattern="[a-zA-Z0-9_]{3,32}" title="3-32 caracteres alfanuméricos o guión bajo">
+      </div>
+      <div class="input-group">
+        <label for="editAvatarUrl">URL de Avatar (Opcional)</label>
+        <input type="url" id="editAvatarUrl" placeholder="https://...">
+      </div>
+      <button type="submit" class="btn-submit" id="btnEditProfSubmit">Guardar Cambios</button>
+    </form>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/supabase-config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/garage.js"></script>
+</body>
+</html>

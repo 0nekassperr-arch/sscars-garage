@@ -1,224 +1,151 @@
 # 🏛️ ARQUITECTURA DEL SISTEMA — SSCARS GARAGE 2.0 (V2)
 
 > **Documento:** Especificación Técnica y Arquitectura del Sistema  
-> **Versión:** 2.0.0-FOUNDATION  
+> **Versión:** 2.1.0-AUTH-GARAGE-COLLECTION  
 > **Fecha:** 2026-09-14  
-> **Estado:** Foundation Aprobada y Migraciones Versionadas Listas
+> **Estado:** Fase 2 (Auth + Garage + Colección Digital) Implementada y Testeada
 
 ---
 
 ## 📑 ÍNDICE
 
-1. [Resumen Ejecutivo y Objetivos de la V2](#1-resumen-ejecutivo-y-objetivos-de-la-v2)
-2. [Aislamiento de Proveedores y Filosofía de Adapters](#2-aislamiento-de-proveedores-y-filosofía-de-adapters)
-3. [Arquitectura General del Sistema V2](#3-arquitectura-general-del-sistema-v2)
-4. [Esquema de Base de Datos Supabase (Migraciones Versionadas)](#4-esquema-de-base-de-datos-supabase)
-5. [Políticas de Seguridad Row Level Security (RLS)](#5-políticas-de-seguridad-row-level-security-rls)
-6. [Supabase Storage: Configuración y Políticas de Buckets](#6-supabase-storage-configuración-y-políticas)
-7. [Motor de Productos de Temporada y Campañas (SSCARS Gift Box)](#7-motor-de-productos-de-temporada-y-campañas)
-8. [Sistema de Builds, Tuning y Snapshots Inmutables](#8-sistema-de-builds-tuning-y-snapshots-inmutables)
-9. [Sistema de Cartas Digitales y Car Cards HD](#9-sistema-de-cartas-digitales-y-car-cards-hd)
-10. [Gamificación: XP Ledger Idempotente, Niveles y Recompensa Diaria](#10-gamificación-xp-ledger-idempotente-y-recompensa-diaria)
-11. [Gestión Atómica de Inventario Gold y Concurrencia](#11-gestión-atómica-de-inventario-gold-y-concurrencia)
-12. [Fulfillment Dual Polimórfico (Fábrica Genérica + Printful)](#12-fulfillment-dual-polimórfico)
-13. [Estrategia de Migración V1 → V2 (Cero Downtime)](#13-estrategia-de-migración-v1--v2)
-14. [Estrategia de Rollback y Contingencia](#14-estrategia-de-rollback-y-contingencia)
+1. [Resumen Ejecutivo y Estado de Fases](#1-resumen-ejecutivo-y-estado-de-fases)
+2. [Arquitectura de Autenticación (Supabase Auth)](#2-arquitectura-de-autenticación-supabase-auth)
+3. [Módulo de Garaje y Perfil de Conductor](#3-módulo-de-garaje-y-perfil-de-conductor)
+4. [Colección Digital de Cartas JDM](#4-colección-digital-de-cartas-jdm)
+5. [Seguridad y Políticas RLS Aplicadas](#5-seguridad-y-políticas-rls-aplicadas)
+6. [Persistencia y Coexistencia V1 / V2](#6-persistencia-y-coexistencia-v1--v2)
+7. [Esquema de Base de Datos y Migraciones](#7-esquema-de-base-de-datos-y-migraciones)
+8. [Motor de Campañas y Gift Box (Planificado para Fase 3)](#8-motor-de-campañas-y-gift-box)
+9. [Fulfillment Dual (Planificado para Fase 4)](#9-fulfillment-dual)
+10. [Funcionalidades Deliberadamente Pospuestas](#10-funcionalidades-deliberadamente-pospuestas)
+11. [Estrategia de Rollback y Contingencia](#11-estrategia-de-rollback-y-contingencia)
 
 ---
 
-## 1. RESUMEN EJECUTIVO Y OBJETIVOS DE LA V2
+## 1. RESUMEN EJECUTIVO Y ESTADO DE FASES
 
-SSCARS Garage V1 opera con una landing estática, carrito en `localStorage` y checkout en Stripe.
+SSCARS Garage 2.0 evoluciona el modelo de tienda estática hacia una plataforma **Phygital** (Físico + Digital).
 
-**SSCARS Garage 2.0 (V2)** establece a **Supabase (PostgreSQL, Auth y Storage)** como la fuente única de verdad para la identidad, progreso, catálogo y colecciones:
-- **Identidad:** Supabase Auth con perfiles sincronizados y roles protegidos.
-- **Catálogo Centralizado:** Los coches, precios y piezas dejan de estar hardcodeados en cliente y pasan a la base de datos.
-- **Car Cards Digitales:** Cada figura física o logro genera una carta digital inmutable con metadatos y número de tirada.
-- **Tuning y Snapshots:** El garaje permite personalizar vehículos generando *build snapshots* inmutables que congelan la configuración para la fabricación.
-- **Campañas y Gift Box:** Motor dinámico para Black Friday, Navidad y bundles compuestos (Coche sorpresa + Merch Printful + Carta física).
-- **Fulfillment Dual Segregado:** Gestión independiente de estados de fabricación y logística sin acoplarse a APIs concretas.
+### Estado Actual de Fases:
+- **✅ FASE 1 (Foundation):** Esquema relacional en Supabase PostgreSQL, Storage buckets, catálogo de 15 coches, inventario atómico Gold (100 unidades) y suite de pruebas.
+- **✅ PARCHE HARDENING (R1–R5):** Protección de campos de perfil, revocación de llamadas RPC públicas, recompensa diaria 100% server-side y `search_path` seguro.
+- **✅ FASE 2 (Auth + Garage + Colección):**
+  - Autenticación con Supabase Auth (Registro, Login, Logout, Recuperación de contraseña y Sesión persistente).
+  - Vistas de Garaje (`/garage.html`) con progreso de XP, nivel y racha diaria.
+  - Colección digital de 15 cartas conectada a `user_cards` en tiempo real.
+  - Aislamiento de privacidad por usuario vía RLS (`007_user_cards_private_rls.sql`).
+  - Carrito V1 y checkout intactos en `localStorage` (`sscars_cart_v1`).
 
 ---
 
-## 2. AISLAMIENTO DE PROVEEDORES Y FILOSOFÍA DE ADAPTERS
+## 2. ARQUITECTURA DE AUTENTICACIÓN (SUPABASE AUTH)
 
-> ⚠️ **DECLARACIÓN DE INTEGRACIÓN Y PROVEEDOR:**  
-> Ningún proveedor de fabricación externo antiguo forma parte del proyecto. La V2 utiliza un **Patrón Adapter Genérico (`factory`)** desacoplado. La conexión con el proveedor real de SSCARS se realizará en una fase posterior mediante credenciales seguras de entorno (`FACTORY_API_KEY`, `FACTORY_API_URL`), sin exponer nombres ni dependencias propietarias en el código ni en la base de datos.
+La autenticación utiliza el servicio nativo GoTrue de Supabase sin frameworks pesados ni dependencias externas:
 
 ```
-                    ┌──────────────────────────────────────────────┐
-                    │          CAPA DE FULFILLMENT V2              │
-                    └──────────────────────┬───────────────────────┘
-                                           │
-                    ┌──────────────────────┴──────────────────────┐
-                    ▼                                             ▼
-       ┌─────────────────────────┐                   ┌─────────────────────────┐
-       │   GENERIC FACTORY ADAPTER│                  │    PRINTFUL ADAPTER     │
-       │ - Cola de impresión 3D  │                   │ - Merchandising POD     │
-       │ - Logística InPost/Punto│                   │ - Ropa / Accesorios     │
-       │ - Modo Manual Fallback  │                   │ - Webhook de Tracking   │
-       └─────────────────────────┘                   └─────────────────────────┘
+[CLIENTE: public/js/auth.js]
+       │
+       ├── POST /auth/v1/signup ─────────► [Crea usuario en auth.users]
+       │                                         │
+       │                                         ▼ (Trigger: handle_new_user)
+       │                                   [Crea perfil en public.profiles]
+       │
+       ├── POST /auth/v1/token (login) ──► [Devuelve JWT Bearer + Refresh Token]
+       │                                         │
+       │                                         ▼
+       │                                   [Persiste en localStorage: sscars_auth_session_v2]
+       │
+       ├── POST /auth/v1/recover ────────► [Envía email de recuperación]
+       │
+       └── POST /auth/v1/logout ─────────► [Invalida sesión y limpia estado local]
 ```
 
----
-
-## 3. ARQUITECTURA GENERAL DEL SISTEMA V2
-
-```
-                                  ┌─────────────────────────────────────────┐
-                                  │           CLIENTE WEB (V2 SPA)          │
-                                  │  - Tienda V1 & Campañas Temporales      │
-                                  │  - Garage 3D / Configurador de Builds   │
-                                  │  - Álbum de Cartas Digitales & Ranks    │
-                                  └───────────────┬─────────────────────────┘
-                                                  │
-                                                  ▼
-                        ┌───────────────────────────────────────────────────┐
-                        │              EDGE ROUTER & API GATEWAY            │
-                        │            (Vercel Serverless Functions)          │
-                        └─────────┬───────────────────────────────┬─────────┘
-                                  │                               │
-                ┌─────────────────┴─────────────┐                 │
-                ▼                               ▼                 ▼
-  ┌─────────────────────────┐     ┌─────────────────────────┐   ┌─────────────────────────┐
-  │      SUPABASE AUTH      │     │    SUPABASE DATABASE    │   │    SUPABASE STORAGE     │
-  │  - Email / Password     │     │  - PostgreSQL con RLS   │   │  - car-card-renders     │
-  │  - Magic Link / OAuth   │     │  - Triggers & Functions │   │  - build-renders        │
-  │  - JWT Claims           │     │  - Realtime CDC         │   │  - user-assets          │
-  └─────────────────────────┘     └─────────────┬───────────┘   └─────────────────────────┘
-                                                │
-                ┌───────────────────────────────┼───────────────────────────────┐
-                ▼                               ▼                               ▼
-  ┌───────────────────────────┐   ┌───────────────────────────┐   ┌───────────────────────────┐
-  │      STRIPE CHECKOUT      │   │    ADAPTER FÁBRICA GEN.   │   │     ADAPTER PRINTFUL      │
-  │  - Webhooks Idempotentes  │   │  - Cola de impresión SLA  │   │  - Sync de Variantes      │
-  │  - V1 Boxes & V2 Builds   │   │  - InPost / Punto Pack    │   │  - Despacho Merch POD     │
-  │  - Campañas / Gift Boxes  │   │  - Etiquetas Logísticas   │   │  - Tracking Internacional │
-  └───────────────────────────┘   └───────────────────────────┘   └───────────────────────────┘
-```
+### Reglas de Seguridad en Cliente:
+- **Variables Públicas Utilizadas:** Únicamente `SUPABASE_URL` y `SUPABASE_ANON_KEY`.
+- **Aislamiento de Secretos:** `SUPABASE_SERVICE_ROLE_KEY` reside exclusivamente en el backend y jamás se expone al navegador ni a scripts públicos.
+- **Manejo de Sesión:** Si el token JWT expira, `auth.js` ejecuta `refreshSession()` automáticamente mediante el `refresh_token`. Al cerrar sesión, el carrito de la tienda V1 **se preserva intacto** para no perjudicar la experiencia del visitante.
 
 ---
 
-## 4. ESQUEMA DE BASE DE DATOS SUPABASE
+## 3. MÓDULO DE GARAJE Y PERFIL DE CONDUCTOR
 
-Las migraciones SQL versionadas se organizan en `supabase/migrations/`:
+Ubicado en `public/garage.html` (y accesible desde el botón "Mi Garaje" en el header de `public/index.html`):
 
-| Archivo de Migración | Contenido y Propósito |
-|---|---|
-| `001_initial_schema.sql` | Definición de tablas maestras, tipos ENUM, claves foráneas, índices y triggers de inmutabilidad. |
-| `002_rls_policies.sql` | Políticas de seguridad granular Row Level Security (RLS) para aislamiento estricto de usuarios y catálogo público. |
-| `003_storage_buckets.sql` | Configuración de buckets en `storage.buckets` (`car-card-renders`, `build-renders`, `user-assets`) y políticas de lectura/escritura. |
-| `004_seed_catalog.sql` | Semillas de datos para las 15 leyendas JDM, inventario Gold de 100 unidades, piezas de tuning y productos base. |
-| `005_functions_and_triggers.sql` | Funciones almacenadas PostgreSQL: trigger de auto-perfil tras registro, asignación atómica de Gold, deduplicación de recompensas diarias y ledger de XP idempotente. |
-
----
-
-## 5. POLÍTICAS DE SEGURIDAD ROW LEVEL SECURITY (RLS)
-
-- **Principio de Mínimo Privilegio:** Ningún cliente anónimo o autenticado puede escribir directamente en `cards`, `orders`, `order_items`, `fulfillments`, `gold_inventory` ni `xp_ledger`.
-- **Aislamiento de Perfil y Garaje:** Cada usuario autenticado (`auth.uid()`) solo puede leer y modificar sus propios registros en `profiles`, `builds`, `build_snapshots` y `user_cards`.
-- **Acceso Administrativo y Webhooks:** Todas las mutaciones críticas de pedidos y otorgamiento de recompensas se ejecutan exclusivamente mediante el **Service Role** en funciones serverless de backend.
-- **Protección de Claves:** `SUPABASE_SERVICE_ROLE_KEY` reside únicamente en variables de entorno del servidor. NUNCA se exporta al frontend ni a repositorios.
+1. **Datos de Conductor (Server Authority):**
+   - **Nivel:** Calculado mediante la fórmula cuadrática $\text{Nivel} = \lfloor (\text{XP} / 100)^{1 / 1.8} \rfloor + 1$.
+   - **Barra de XP:** Muestra el progreso actual hacia el siguiente nivel.
+   - **Racha Diaria:** Días consecutivos de conexión (`daily_streak`).
+   - *Nota:* XP, nivel, rol y racha son de solo lectura en cliente; cualquier intento de manipulación es bloqueado en la base de datos por el trigger `trg_protect_profile_system_fields`.
+2. **Edición de Perfil:**
+   - Permite modificar únicamente `username`, `display_name` y `avatar_url`.
 
 ---
 
-## 6. SUPABASE STORAGE: CONFIGURACIÓN Y POLÍTICAS
+## 4. COLECCIÓN DIGITAL DE CARTAS JDM
 
-1. **`car-card-renders` (Público, lectura abierta, escritura Service Role):**
-   - Almacena las imágenes HD de Car Cards generadas por el backend.
-   - Nomenclatura: `{car_slug}/{card_code}.webp`.
-2. **`build-renders` (Público, lectura abierta, escritura Service Role):**
-   - Almacena renders 3D de las configuraciones y snapshots del garaje.
-   - Nomenclatura: `{snapshot_id}/preview.webp`.
-3. **`user-assets` (Privado, autenticado por carpeta de usuario):**
-   - Acceso exclusivo para subidas del propio usuario: `{user_id}/*`.
-
----
-
-## 7. MOTOR DE PRODUCTOS DE TEMPORADA Y CAMPAÑAS
-
-La **SSCARS Gift Box** y cualquier futura campaña (Black Friday, Navidad, Verano) se gestionan mediante entidades relacionales sin hardcodear fechas en código:
-
+La colección se alimenta de la consulta relacional protegida:
 ```sql
--- Estructura de Campaña
-campaigns: {
-    id: UUID,
-    slug: 'xmas-2026',
-    starts_at: '2026-12-01T00:00:00Z',
-    ends_at: '2026-12-31T23:59:59Z',
-    stock_limit: 500,
-    stock_used: 0
-}
+SELECT * FROM public.user_cards
+JOIN public.cards ON user_cards.card_id = cards.id
+JOIN public.cars ON cards.car_id = cars.id
+WHERE user_cards.user_id = auth.uid();
+```
 
--- Definición del Producto Gift Box
-products: {
-    id: 'gift_box_tier1',
-    product_type: 'gift_box',
-    campaign_id: '...',
-    price: 79.95
-}
+### Visualización y Estados:
+- **Cartas Desbloqueadas (`owned`):** Muestra el arte en color, número de coche (`#01` a `#15`), estadísticas de potencia (CV), velocidad máxima, aceleración 0-100 km/h, manejo, rareza (*Common*, *Rare*, *Epic*, *Legendary*, *Gold Chrome*) y código serial de la carta.
+- **Cartas Bloqueadas (`locked`):** Representadas con silueta oscura y candado ("No descubierta · Consigue una caja en la tienda").
+- **Filtros Dinámicos:** [Todas (15)] [En Garaje] [Bloqueadas] [Gold Chase].
 
--- Composición Dinámica del Bundle
-product_bundle_items: [
-    { item_type: 'mystery_car', provider: 'factory', quantity: 1 },
-    { item_type: 'exclusive_card', provider: 'inhouse', quantity: 1 },
-    { item_type: 'printful_merch', provider: 'printful', provider_variant_id: 'hoodie_xmas_l', quantity: 1 }
-]
+---
+
+## 5. SEGURIDAD Y POLÍTICAS RLS APLICADAS
+
+| Tabla | Política RLS | Acceso |
+|---|---|---|
+| `profiles` | `profiles_select_public`<br>`profiles_update_own` | SELECT público.<br>UPDATE limitado a `(username, display_name, avatar_url)` para `auth.uid() = id`. |
+| `user_cards` | `user_cards_select_own` | SELECT exclusivo para `auth.uid() = user_id`.<br>INSERT/UPDATE/DELETE denegado a clientes (solo `service_role`). |
+| `cars` / `cards` | `cars_select_public`<br>`cards_select_public` | SELECT público (`active = true`). Escritura denegada. |
+| `daily_rewards` | `daily_rewards_select_own` | SELECT exclusivo para `auth.uid() = user_id`. |
+| `xp_ledger` | `xp_ledger_select_own` | SELECT exclusivo para `auth.uid() = user_id`. |
+
+---
+
+## 6. PERSISTENCIA Y COEXISTENCIA V1 / V2
+
+| Elemento | Fuente de Verdad | Estado en Fase 2 |
+|---|---|---|
+| **Carrito de Compras** | `localStorage` (`sscars_cart_v1`) | **V1 Intacto.** Funciona para usuarios anónimos y registrados. |
+| **Checkout & Pagos** | Stripe Sessions (`api/checkout.js`) | **V1 Intacto.** No se ha modificado el flujo de cobro. |
+| **Sorteo Anti-Repes** | `api/sorteo.js` (Fisher-Yates) | **V1 Intacto.** Muestreo ponderado para cajas físicas. |
+| **Identidad & Perfil** | Supabase (`auth.users`, `public.profiles`) | **V2 Activo.** Autenticación real y persistente. |
+| **Colección Digital** | Supabase (`public.user_cards`) | **V2 Activo.** Posesión digital real verificada server-side. |
+
+---
+
+## 7. ESQUEMA DE BASE DE DATOS Y MIGRACIONES
+
+```
+supabase/migrations/
+├── 001_initial_schema.sql            (16 tablas base + Enums + Constraints)
+├── 002_rls_policies.sql              (Políticas RLS base)
+├── 003_storage_buckets.sql           (Buckets: car-card-renders, build-renders, user-assets)
+├── 004_seed_catalog.sql              (15 coches JDM + 100 Golds + Tuning + Productos)
+├── 005_functions_and_triggers.sql    (Triggers y RPCs atómicas)
+├── 006_security_hardening.sql        (Parche de hardening R1–R5)
+└── 007_user_cards_private_rls.sql    (Aislamiento estricto de colección por usuario)
 ```
 
 ---
 
-## 8. SISTEMA DE BUILDS, TUNING Y SNAPSHOTS INMUTABLES
+## 8. FUNCIONALIDADES DELIBERADAMENTE POSPUESTAS
 
-- **Tuning Dinámico (`builds`):** Los usuarios pueden equipar piezas de la tabla `tuning_parts` (categorías extensibles: *wheels*, *spoiler*, *exhaust*, *paint*, *bodykit*, *suspension*, *decals*).
-- **Snapshot Inmutable (`build_snapshots`):** Al tramitar un pedido o congelar una build, se crea un registro de snapshot. Un **trigger de PostgreSQL (`trg_build_snapshots_immutable`)** bloquea cualquier sentencia `UPDATE` o `DELETE`, garantizando que la orden histórica preserve exactamente la configuración comprada aunque el usuario modifique su garaje más adelante.
-
----
-
-## 9. SISTEMA DE CARTAS DIGITALES Y CAR CARDS HD
-
-- Cada carta posee un `code` único (p. ej. `CARD-R34-042-GOLD`).
-- Los atributos de rendimiento (*hp*, *top speed*, *drift rating*) y acabado (*standard*, *matte*, *holo*, *gold_leaf*) se verifican server-side.
-- La posesión en `user_cards` está ligada al perfil de Supabase y nunca se confía al `localStorage` del navegador.
+Para preservar la estabilidad y cumplir la metodología por fases, las siguientes funcionalidades **NO** han sido implementadas en esta fase y se abordarán en fases posteriores:
+1. **Fase 3:** Webhook de Stripe V2 con auto-otorgamiento de `user_cards` tras compra y doble escritura.
+2. **Fase 4:** Configurador de Tuning 3D y generación de `build_snapshots`.
+3. **Fase 5:** Motor de renders HD de Car Cards y carga en Supabase Storage.
+4. **Fase 6:** Adaptador de Printful y despacho segregado para la **SSCARS Gift Box**.
+5. **Fase 7:** Gamificación interactiva en cliente (Daily Reward UI y subida de nivel visual).
 
 ---
-
-## 10. GAMIFICACIÓN: XP LEDGER IDEMPOTENTE Y RECOMPENSA DIARIA
-
-- **XP Ledger (`xp_ledger`):** Cada incremento de XP se registra con `idempotency_key` única. Reintentos de red o múltiples clics no duplican puntos.
-- **Nivel Calculado:** Fórmula cuadrática gestionada por la función `award_xp_atomic()`:
-  $$\text{Nivel} = \lfloor (\text{XP} / 100)^{1 / 1.8} \rfloor + 1$$
-- **Recompensa Diaria (`daily_rewards`):** Restricción `UNIQUE(user_id, reward_date)` y control atómico de racha (`daily_streak`) mediante `claim_daily_reward_atomic()`.
-
----
-
-## 11. GESTIÓN ATÓMICA DE INVENTARIO GOLD Y CONCURRENCIA
-
-Para la tirada de 3.000 unidades con un tope estricto de **100 unidades Gold Chrome**:
-- Tabla `gold_inventory` con restricción `CHECK (gold_assigned <= gold_total)`.
-- Procedimiento `allocate_gold_atomic(p_car_id)` con bloqueo pesimista `FOR UPDATE`.
-- Las peticiones concurrentes se resuelven secuencialmente en el motor transaccional de PostgreSQL, haciendo matemáticamente imposible sobreasignar unidades doradas.
-
----
-
-## 12. FULFILLMENT DUAL POLIMÓRFICO
-
-Un pedido con una Gift Box o ítems mixtos genera registros separados en `fulfillments`:
-1. **Línea de Coche 3D:** Despacho hacia el taller de resina / punto de entrega InPost con estado `queued` → `processing` → `shipped`.
-2. **Línea de Merchandising:** Despacho hacia la API de Printful con sincronización de tracking vía webhook.
-3. El cliente consulta un único pedido en la web, visualizando el estado y tracking independiente de cada paquete.
-
----
-
-## 13. ESTRATEGIA DE MIGRACIÓN V1 → V2 (CERO DOWNTIME)
-
-1. **Fase 1 (Foundation - Completada):** Migraciones DDL desplegadas, tablas con RLS, Storage preparado y módulo `api/_supabase.js` listo con fallback no bloqueante.
-2. **Fase 2 (Doble Escritura):** Los webhooks de Stripe registran pedidos en PostgreSQL y Upstash de forma concurrente sin modificar el checkout del cliente.
-3. **Fase 3 (Lanzamiento Garage 2.0 & Gift Box):** Activación progresiva del nuevo frontend con autenticación Supabase Auth y lectura de catálogo dinámico.
-
----
-
-## 14. ESTRATEGIA DE ROLLBACK Y CONTINGENCIA
-
-- **Bandera de Seguridad (`isSupabaseConfigured`):** Si las variables de Supabase no están presentes o la base de datos se encuentra en mantenimiento, los endpoints de V1 operan normalmente con Upstash Redis y variables de entorno clásicas.
-- **Fulfillment Manual de Respaldo:** Si un adaptador externo no responde, el fulfillment se marca como `pending`/`manual` y se notifica por email mediante Resend con el detalle de las piezas a producir.
+*Fin del documento ARCHITECTURE_V2.md (Versión 2.1.0)*
