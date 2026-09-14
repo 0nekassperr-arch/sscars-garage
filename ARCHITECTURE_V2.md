@@ -1,47 +1,45 @@
 # 🏛️ ARQUITECTURA DEL SISTEMA — SSCARS GARAGE 2.0 (V2)
 
 > **Documento:** Especificación Técnica y Arquitectura del Sistema  
-> **Versión:** 2.1.0-AUTH-GARAGE-COLLECTION  
+> **Versión:** 2.1.1-AUTH-GARAGE-AUDIT-FINAL  
 > **Fecha:** 2026-09-14  
-> **Estado:** Fase 2 (Auth + Garage + Colección Digital) Implementada y Testeada
+> **Estado:** Fase 2.1 (Auditoría y Corrección Final de Auth + Garage + Timezone) Completada y Testeada
 
 ---
 
 ## 📑 ÍNDICE
 
 1. [Resumen Ejecutivo y Estado de Fases](#1-resumen-ejecutivo-y-estado-de-fases)
-2. [Arquitectura de Autenticación (Supabase Auth)](#2-arquitectura-de-autenticación-supabase-auth)
-3. [Módulo de Garaje y Perfil de Conductor](#3-módulo-de-garaje-y-perfil-de-conductor)
-4. [Colección Digital de Cartas JDM](#4-colección-digital-de-cartas-jdm)
-5. [Seguridad y Políticas RLS Aplicadas](#5-seguridad-y-políticas-rls-aplicadas)
-6. [Persistencia y Coexistencia V1 / V2](#6-persistencia-y-coexistencia-v1--v2)
-7. [Esquema de Base de Datos y Migraciones](#7-esquema-de-base-de-datos-y-migraciones)
-8. [Motor de Campañas y Gift Box (Planificado para Fase 3)](#8-motor-de-campañas-y-gift-box)
-9. [Fulfillment Dual (Planificado para Fase 4)](#9-fulfillment-dual)
-10. [Funcionalidades Deliberadamente Pospuestas](#10-funcionalidades-deliberadamente-pospuestas)
-11. [Estrategia de Rollback y Contingencia](#11-estrategia-de-rollback-y-contingencia)
+2. [Arquitectura de Autenticación: Fuente Única de Verdad](#2-arquitectura-de-autenticación-fuente-única-de-verdad)
+3. [Modelo de Propiedad de Cartas: cars ➔ cards ➔ user_cards](#3-modelo-de-propiedad-de-cartas)
+4. [Cálculo Centralizado XP ➔ Level (PostgreSQL Authority)](#4-cálculo-centralizado-xp--level)
+5. [Día de Negocio y Timezone: Europe/Madrid](#5-día-de-negocio-y-timezone-europemadrid)
+6. [Seguridad y Políticas RLS Aplicadas](#6-seguridad-y-políticas-rls-aplicadas)
+7. [Persistencia y Coexistencia V1 / V2](#7-persistencia-y-coexistencia-v1--v2)
+8. [Esquema de Base de Datos y Migraciones Versionadas](#8-esquema-de-base-de-datos-y-migraciones-versionadas)
+9. [Funcionalidades Deliberadamente Pospuestas](#9-funcionalidades-deliberadamente-pospuestas)
 
 ---
 
 ## 1. RESUMEN EJECUTIVO Y ESTADO DE FASES
 
-SSCARS Garage 2.0 evoluciona el modelo de tienda estática hacia una plataforma **Phygital** (Físico + Digital).
+SSCARS Garage 2.0 evoluciona el modelo de tienda estática hacia una plataforma **Phygital** (Físico + Digital) con garantías criptográficas y relacionales.
 
 ### Estado Actual de Fases:
-- **✅ FASE 1 (Foundation):** Esquema relacional en Supabase PostgreSQL, Storage buckets, catálogo de 15 coches, inventario atómico Gold (100 unidades) y suite de pruebas.
-- **✅ PARCHE HARDENING (R1–R5):** Protección de campos de perfil, revocación de llamadas RPC públicas, recompensa diaria 100% server-side y `search_path` seguro.
-- **✅ FASE 2 (Auth + Garage + Colección):**
-  - Autenticación con Supabase Auth (Registro, Login, Logout, Recuperación de contraseña y Sesión persistente).
-  - Vistas de Garaje (`/garage.html`) con progreso de XP, nivel y racha diaria.
-  - Colección digital de 15 cartas conectada a `user_cards` en tiempo real.
-  - Aislamiento de privacidad por usuario vía RLS (`007_user_cards_private_rls.sql`).
-  - Carrito V1 y checkout intactos en `localStorage` (`sscars_cart_v1`).
+- **✅ FASE 1 (Foundation):** Esquema relacional en Supabase PostgreSQL, Storage buckets, catálogo de 15 coches e inventario atómico Gold (100 unidades).
+- **✅ PARCHE HARDENING (R1–R5):** Protección de perfiles, revocación de RPCs públicas, recompensa diaria server-side y `search_path` seguro.
+- **✅ FASE 2 & 2.1 (Auth + Garage + Colección + Auditoría):**
+  - **Auth:** Supabase GoTrue como autoridad única. La cache local de sesión se purga automáticamente ante respuestas HTTP 401/403.
+  - **Colección:** Modelo estricto `cars` ➔ `cards` ➔ `user_cards`. Los 15 slots de la UI no confieren propiedad; la propiedad real procede exclusivamente de `user_cards` filtrada por RLS (`auth.uid() = user_id`).
+  - **XP ➔ Level:** Función inmutable `public.calculate_driver_level(p_xp)` como única fórmula oficial en PostgreSQL.
+  - **Día de Negocio:** Timezone oficial fijada a `Europe/Madrid` en `claim_daily_reward_atomic()`.
+  - **V1 Intacta:** Carrito en `localStorage` (`sscars_cart_v1`) y checkout de Stripe preservados al 100%.
 
 ---
 
-## 2. ARQUITECTURA DE AUTENTICACIÓN (SUPABASE AUTH)
+## 2. ARQUITECTURA DE AUTENTICACIÓN: FUENTE ÚNICA DE VERDAD
 
-La autenticación utiliza el servicio nativo GoTrue de Supabase sin frameworks pesados ni dependencias externas:
+La autenticación utiliza exclusivamente **Supabase Auth (GoTrue)**.
 
 ```
 [CLIENTE: public/js/auth.js]
@@ -51,79 +49,93 @@ La autenticación utiliza el servicio nativo GoTrue de Supabase sin frameworks p
        │                                         ▼ (Trigger: handle_new_user)
        │                                   [Crea perfil en public.profiles]
        │
-       ├── POST /auth/v1/token (login) ──► [Devuelve JWT Bearer + Refresh Token]
+       ├── POST /auth/v1/token (login) ──► [Emite JWT firmado por Supabase]
        │                                         │
        │                                         ▼
-       │                                   [Persiste en localStorage: sscars_auth_session_v2]
+       │                                   [Cache de sesión en localStorage: sscars_auth_session_v2]
        │
-       ├── POST /auth/v1/recover ────────► [Envía email de recuperación]
-       │
-       └── POST /auth/v1/logout ─────────► [Invalida sesión y limpia estado local]
+       └── Peticiones /rest/v1/... ──────► [Envía Authorization: Bearer <JWT>]
+                                                 │
+                                                 ├── Token Válido ──► PostgREST resuelve RLS (auth.uid())
+                                                 └── Token Inválido (401) ──► Invalida cache local y emite Logout
 ```
 
-### Reglas de Seguridad en Cliente:
-- **Variables Públicas Utilizadas:** Únicamente `SUPABASE_URL` y `SUPABASE_ANON_KEY`.
-- **Aislamiento de Secretos:** `SUPABASE_SERVICE_ROLE_KEY` reside exclusivamente en el backend y jamás se expone al navegador ni a scripts públicos.
-- **Manejo de Sesión:** Si el token JWT expira, `auth.js` ejecuta `refreshSession()` automáticamente mediante el `refresh_token`. Al cerrar sesión, el carrito de la tienda V1 **se preserva intacto** para no perjudicar la experiencia del visitante.
+### Respuestas a la Auditoría de Sesión:
+1. **¿Supabase gestiona la persistencia?** Sí, Supabase valida la firma criptográfica del JWT y el tiempo de expiración en cada petición REST/PostgREST.
+2. **¿Qué función cumple `sscars_auth_session_v2`?** Es estrictamente una **cache de transporte en cliente** para enviar el Bearer Token en las cabeceras HTTP. **No confiere autoridad ni permisos por sí misma**.
+3. **¿Puede haber divergencia de estado?** No: si Supabase devuelve HTTP 401 (token expirado/revocado) y el refresco falla, `auth.js` elimina inmediatamente la entrada local y notifica a la UI el estado de visitante.
 
 ---
 
-## 3. MÓDULO DE GARAJE Y PERFIL DE CONDUCTOR
+## 3. MODELO DE PROPIEDAD DE CARTAS
 
-Ubicado en `public/garage.html` (y accesible desde el botón "Mi Garaje" en el header de `public/index.html`):
+La propiedad digital sigue una jerarquía relacional inmutable:
 
-1. **Datos de Conductor (Server Authority):**
-   - **Nivel:** Calculado mediante la fórmula cuadrática $\text{Nivel} = \lfloor (\text{XP} / 100)^{1 / 1.8} \rfloor + 1$.
-   - **Barra de XP:** Muestra el progreso actual hacia el siguiente nivel.
-   - **Racha Diaria:** Días consecutivos de conexión (`daily_streak`).
-   - *Nota:* XP, nivel, rol y racha son de solo lectura en cliente; cualquier intento de manipulación es bloqueado en la base de datos por el trigger `trg_protect_profile_system_fields`.
-2. **Edición de Perfil:**
-   - Permite modificar únicamente `username`, `display_name` y `avatar_url`.
-
----
-
-## 4. COLECCIÓN DIGITAL DE CARTAS JDM
-
-La colección se alimenta de la consulta relacional protegida:
-```sql
-SELECT * FROM public.user_cards
-JOIN public.cards ON user_cards.card_id = cards.id
-JOIN public.cars ON cards.car_id = cars.id
-WHERE user_cards.user_id = auth.uid();
+```
+┌────────────────────────────────┐
+│           TABLA CARS           │ ──► Define las 15 Leyendas JDM (Catálogo maestro)
+└───────────────┬────────────────┘
+                │ 1:N
+                ▼
+┌────────────────────────────────┐
+│           TABLA CARDS          │ ──► Define la carta y su código único (p. ej. CARD-R34-001)
+└───────────────┬────────────────┘
+                │ 1:N
+                ▼
+┌────────────────────────────────┐
+│        TABLA USER_CARDS        │ ──► Propiedad REAL de un usuario (user_id = auth.uid())
+└────────────────────────────────┘
 ```
 
-### Visualización y Estados:
-- **Cartas Desbloqueadas (`owned`):** Muestra el arte en color, número de coche (`#01` a `#15`), estadísticas de potencia (CV), velocidad máxima, aceleración 0-100 km/h, manejo, rareza (*Common*, *Rare*, *Epic*, *Legendary*, *Gold Chrome*) y código serial de la carta.
-- **Cartas Bloqueadas (`locked`):** Representadas con silueta oscura y candado ("No descubierta · Consigue una caja en la tienda").
-- **Filtros Dinámicos:** [Todas (15)] [En Garaje] [Bloqueadas] [Gold Chase].
+- **Regla de Garaje:** Que la vista del Garaje dibuje 15 slots no significa que el usuario posea los coches. Los coches sin correspondencia en `user_cards` se renderizan como **`LOCKED`** ("No descubierta").
+- **Aislamiento RLS:** Un usuario nunca puede leer ni consultar las filas de `user_cards` de otro usuario.
 
 ---
 
-## 5. SEGURIDAD Y POLÍTICAS RLS APLICADAS
+## 4. CÁLCULO CENTRALIZADO XP ➔ LEVEL
+
+Para evitar duplicidad o discrepancias entre frontend y backend:
+
+- **Fórmula Oficial Única:**
+  $$\text{Level} = \left\lfloor \left( \frac{\text{XP}}{100} \right)^{1 / 1.8} \right\rfloor + 1$$
+- **Implementación Centralizada en PostgreSQL (`008_driver_level_and_timezone.sql`):**
+  ```sql
+  CREATE OR REPLACE FUNCTION public.calculate_driver_level(p_xp BIGINT)
+  RETURNS INTEGER AS $$
+  BEGIN
+      RETURN GREATEST(1, FLOOR(POWER(GREATEST(0, p_xp)::float / 100.0, 1.0 / 1.8))::integer + 1);
+  END;
+  $$ LANGUAGE plpgsql IMMUTABLE SET search_path = public, pg_temp;
+  ```
+- Todas las funciones que modifican experiencia (`award_xp_atomic`, `claim_daily_reward_atomic`) invocan `public.calculate_driver_level()` al actualizar `public.profiles`.
+
+---
+
+## 5. DÍA DE NEGOCIO Y TIMEZONE: Europe/Madrid
+
+- **Definición de Día Comercial:** El reinicio diario de recompensas y rachas se calcula a las **00:00:00 hora peninsular española (`Europe/Madrid`)**.
+- **Manejo de Horario de Verano/Invierno:** PostgreSQL gestiona nativamente la base de datos IANA (`CET` en invierno UTC+1, `CEST` en verano UTC+2), evitando que los usuarios experimenten cambios de día a las 01:00 o 02:00 AM UTC.
+- **Implementación:**
+  ```sql
+  v_today DATE := (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Madrid')::date;
+  ```
+
+---
+
+## 6. SEGURIDAD Y POLÍTICAS RLS APLICADAS
 
 | Tabla | Política RLS | Acceso |
 |---|---|---|
-| `profiles` | `profiles_select_public`<br>`profiles_update_own` | SELECT público.<br>UPDATE limitado a `(username, display_name, avatar_url)` para `auth.uid() = id`. |
-| `user_cards` | `user_cards_select_own` | SELECT exclusivo para `auth.uid() = user_id`.<br>INSERT/UPDATE/DELETE denegado a clientes (solo `service_role`). |
-| `cars` / `cards` | `cars_select_public`<br>`cards_select_public` | SELECT público (`active = true`). Escritura denegada. |
+| `profiles` | `profiles_select_public`<br>`profiles_update_own` | SELECT público.<br>UPDATE restringido a `(username, display_name, avatar_url)` con trigger de bloqueo para `role`, `xp`, `level`, `daily_streak`. |
+| `user_cards` | `user_cards_select_own` | SELECT exclusivo para `auth.uid() = user_id`.<br>Escritura exclusiva para `service_role`. |
+| `cars` / `cards` | `cars_select_public`<br>`cards_select_public` | SELECT público (`active = true`). Escritura bloqueada. |
 | `daily_rewards` | `daily_rewards_select_own` | SELECT exclusivo para `auth.uid() = user_id`. |
 | `xp_ledger` | `xp_ledger_select_own` | SELECT exclusivo para `auth.uid() = user_id`. |
+| `gold_inventory` | `gold_inventory_select_public` | SELECT público. Escritura exclusiva para `service_role`. |
 
 ---
 
-## 6. PERSISTENCIA Y COEXISTENCIA V1 / V2
-
-| Elemento | Fuente de Verdad | Estado en Fase 2 |
-|---|---|---|
-| **Carrito de Compras** | `localStorage` (`sscars_cart_v1`) | **V1 Intacto.** Funciona para usuarios anónimos y registrados. |
-| **Checkout & Pagos** | Stripe Sessions (`api/checkout.js`) | **V1 Intacto.** No se ha modificado el flujo de cobro. |
-| **Sorteo Anti-Repes** | `api/sorteo.js` (Fisher-Yates) | **V1 Intacto.** Muestreo ponderado para cajas físicas. |
-| **Identidad & Perfil** | Supabase (`auth.users`, `public.profiles`) | **V2 Activo.** Autenticación real y persistente. |
-| **Colección Digital** | Supabase (`public.user_cards`) | **V2 Activo.** Posesión digital real verificada server-side. |
-
----
-
-## 7. ESQUEMA DE BASE DE DATOS Y MIGRACIONES
+## 7. ESQUEMA DE BASE DE DATOS Y MIGRACIONES VERSIONADAS
 
 ```
 supabase/migrations/
@@ -133,19 +145,20 @@ supabase/migrations/
 ├── 004_seed_catalog.sql              (15 coches JDM + 100 Golds + Tuning + Productos)
 ├── 005_functions_and_triggers.sql    (Triggers y RPCs atómicas)
 ├── 006_security_hardening.sql        (Parche de hardening R1–R5)
-└── 007_user_cards_private_rls.sql    (Aislamiento estricto de colección por usuario)
+├── 007_user_cards_private_rls.sql    (Aislamiento estricto de colección por usuario)
+└── 008_driver_level_and_timezone.sql (Función inmutable XP->Level y timezone Europe/Madrid)
 ```
 
 ---
 
 ## 8. FUNCIONALIDADES DELIBERADAMENTE POSPUESTAS
 
-Para preservar la estabilidad y cumplir la metodología por fases, las siguientes funcionalidades **NO** han sido implementadas en esta fase y se abordarán en fases posteriores:
-1. **Fase 3:** Webhook de Stripe V2 con auto-otorgamiento de `user_cards` tras compra y doble escritura.
-2. **Fase 4:** Configurador de Tuning 3D y generación de `build_snapshots`.
-3. **Fase 5:** Motor de renders HD de Car Cards y carga en Supabase Storage.
-4. **Fase 6:** Adaptador de Printful y despacho segregado para la **SSCARS Gift Box**.
-5. **Fase 7:** Gamificación interactiva en cliente (Daily Reward UI y subida de nivel visual).
+Las siguientes funcionalidades permanecen expresamente fuera de esta fase para garantizar estabilidad:
+1. **Fase 3:** Webhook de Stripe V2 con asignación automática de `user_cards` y doble escritura.
+2. **Fase 4:** Módulo interactivo de Tuning 3D y `build_snapshots`.
+3. **Fase 5:** Pipeline de generación de Car Cards HD en Supabase Storage.
+4. **Fase 6:** Adaptador de Printful y despacho de **SSCARS Gift Box**.
+5. **Fase 7:** Interfaz interactiva de Daily Reward en cliente.
 
 ---
-*Fin del documento ARCHITECTURE_V2.md (Versión 2.1.0)*
+*Fin del documento ARCHITECTURE_V2.md (Versión 2.1.1)*

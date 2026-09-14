@@ -110,6 +110,13 @@
     const data = await res.json().catch(() => null);
 
     if (!res.ok) {
+      if (res.status === 401 && currentSession) {
+        // Token inválido o revocado en Supabase: intentar refrescar o cerrar sesión
+        const refreshed = await Auth.refreshSession();
+        if (!refreshed) {
+          saveSession(null);
+        }
+      }
       const msg = data?.message || data?.error || `Error ${res.status}`;
       throw new Error(msg);
     }
