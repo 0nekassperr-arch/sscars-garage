@@ -56,11 +56,12 @@ async function postgrestRequest(path, { method = 'GET', body = null, headers = {
 /**
  * Ejecuta una función almacenada (RPC) en Supabase
  */
-export async function rpc(functionName, params = {}, { useServiceRole = true } = {}) {
+export async function rpc(functionName, params = {}, { useServiceRole = true, headers = {} } = {}) {
   return postgrestRequest(`rpc/${functionName}`, {
     method: 'POST',
     body: params,
-    useServiceRole
+    useServiceRole,
+    headers
   });
 }
 
@@ -109,19 +110,15 @@ export async function createBuildSnapshot({ buildId, userId, carId, buildData, s
 }
 
 /**
- * Reclama la recompensa diaria de forma atómica
+ * Reclama la recompensa diaria de forma atómica (identidad validada server-side)
  */
-export async function claimDailyReward({ userId, rewardType = 'xp', rewardData = {} }) {
-  if (!userId) return { ok: false, error: 'Usuario requerido' };
-  return rpc('claim_daily_reward_atomic', {
-    p_user_id: userId,
-    p_reward_type: rewardType,
-    p_reward_data: rewardData
-  });
+export async function claimDailyReward({ userToken = null } = {}) {
+  const headers = userToken ? { Authorization: `Bearer ${userToken}` } : {};
+  return rpc('claim_daily_reward_atomic', {}, { useServiceRole: !userToken, headers });
 }
 
 /**
- * Otorga XP de forma atómica e idempotente
+ * Otorga XP de forma atómica e idempotente (Solo ejecutable por service_role)
  */
 export async function awardXp({ userId, amount, reason, referenceType = null, referenceId = null, idempotencyKey = null }) {
   if (!userId || !amount) return { ok: false, error: 'Parámetros de XP inválidos' };
@@ -132,15 +129,15 @@ export async function awardXp({ userId, amount, reason, referenceType = null, re
     p_ref_type: referenceType,
     p_ref_id: referenceId,
     p_idempotency_key: idempotencyKey
-  });
+  }, { useServiceRole: true });
 }
 
 /**
- * Asigna una unidad de Gold de forma atómica y protegida contra concurrencia
+ * Asigna una unidad de Gold de forma atómica y protegida contra concurrencia (Solo ejecutable por service_role)
  */
 export async function allocateGoldAtomic(carId) {
   if (!carId) return false;
-  const res = await rpc('allocate_gold_atomic', { p_car_id: carId });
+  const res = await rpc('allocate_gold_atomic', { p_car_id: carId }, { useServiceRole: true });
   return res.ok ? Boolean(res.data) : false;
 }
 
