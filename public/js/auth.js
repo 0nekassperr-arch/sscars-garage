@@ -371,6 +371,60 @@
       // Lectura aislada de user_cards protegida por RLS
       const userCards = await restFetch(`user_cards?user_id=eq.${userId}&select=id,card_id,obtained_at,source,metadata,cards(id,car_id,rarity,code,is_gold,cars(id,number,slug,name,real_model,year,base_stats,images))`);
       return userCards || [];
+    },
+
+    /**
+     * Obtiene el catálogo de piezas de tuning activas
+     */
+    async getTuningParts() {
+      return restFetch('tuning_parts?active=eq.true&order=category.asc,xp_required.asc');
+    },
+
+    /**
+     * Obtiene las configuraciones/builds guardadas por el usuario
+     */
+    async getUserBuilds() {
+      if (!this.isAuthenticated()) return [];
+      const userId = this.getUser().id;
+      return restFetch(`builds?user_id=eq.${userId}&select=*&order=updated_at.desc`);
+    },
+
+    /**
+     * Guarda o actualiza un build validando ownership y XP en servidor
+     */
+    async saveBuild({ carId, name, partSlugs = [], buildId = null }) {
+      if (!this.isAuthenticated()) throw new Error('Debes iniciar sesión para tunear tu coche.');
+      return restFetch('rpc/save_build_atomic', {
+        method: 'POST',
+        body: JSON.stringify({
+          p_car_id: carId,
+          p_name: name,
+          p_part_slugs: partSlugs,
+          p_build_id: buildId || undefined
+        })
+      });
+    },
+
+    /**
+     * Crea un snapshot inmutable a partir de un build
+     */
+    async createBuildSnapshot(buildId) {
+      if (!this.isAuthenticated()) throw new Error('Debes iniciar sesión.');
+      return restFetch('rpc/create_build_snapshot_atomic', {
+        method: 'POST',
+        body: JSON.stringify({ p_build_id: buildId })
+      });
+    },
+
+    /**
+     * Elimina un build propio
+     */
+    async deleteBuild(buildId) {
+      if (!this.isAuthenticated()) throw new Error('Debes iniciar sesión.');
+      return restFetch('rpc/delete_build_atomic', {
+        method: 'POST',
+        body: JSON.stringify({ p_build_id: buildId })
+      });
     }
   };
 

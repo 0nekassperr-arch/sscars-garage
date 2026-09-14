@@ -1,23 +1,23 @@
 # 🏛️ ARQUITECTURA DEL SISTEMA — SSCARS GARAGE 2.0 (V2)
 
 > **Documento:** Especificación Técnica y Arquitectura del Sistema  
-> **Versión:** 2.2.0-GAMIFICATION-DAILY-REWARDS  
+> **Versión:** 2.3.0-TUNING-BUILDS-SNAPSHOTS  
 > **Fecha:** 2026-09-14  
-> **Estado:** Fase 3 (Daily Reward + Cartas Digitales + Gamificación XP) Completada y Testeada
+> **Estado:** Fase 4 (Tuning + Builds + Snapshots Inmutables) Completada y Testeada
 
 ---
 
 ## 📑 ÍNDICE
 
 1. [Resumen Ejecutivo y Estado de Fases](#1-resumen-ejecutivo-y-estado-de-fases)
-2. [Ciclo de Gamificación y Flujo Daily Drop](#2-ciclo-de-gamificación-y-flujo-daily-drop)
-3. [Motor de Recompensas Diarias (PostgreSQL Authority)](#3-motor-de-recompensas-diarias)
-4. [Política Anti-Duplicados de Cartas](#4-política-anti-duplicados-de-cartas)
-5. [Cálculo de Racha (Daily Streak) y Timezone Europe/Madrid](#5-cálculo-de-racha-y-timezone-europemadrid)
-6. [Gestión de XP, Ledger Idempotente y Niveles](#6-gestión-de-xp-ledger-idempotente-y-niveles)
-7. [Integración con Inventario Gold (100 unidades Físicas)](#7-integración-con-inventario-gold)
-8. [Seguridad, Aislamiento RLS y Permisos RPC](#8-seguridad-aislamiento-rls-y-permisos-rpc)
-9. [Persistencia y Coexistencia V1 / V2](#9-persistencia-y-coexistencia-v1--v2)
+2. [Arquitectura de Autenticación y Autoridad](#2-arquitectura-de-autenticación-y-autoridad)
+3. [Modelo de Propiedad de Cartas y Restricción de Garaje](#3-modelo-de-propiedad-de-cartas)
+4. [Módulo de Tuning y Catálogo de Piezas](#4-módulo-de-tuning-y-catálogo-de-piezas)
+5. [Cálculo de Stats Server-Side y Reglas de XP](#5-cálculo-de-stats-server-side-y-reglas-de-xp)
+6. [Ciclo de Vida de Builds (Un Coche ➔ Múltiples Configuraciones)](#6-ciclo-de-vida-de-builds)
+7. [Snapshots Inmutables y Versionado](#7-snapshots-inmutables-y-versionado)
+8. [Personalización Virtual vs Fabricación Física](#8-personalización-virtual-vs-fabricación-física)
+9. [Seguridad, Aislamiento RLS y Permisos RPC](#9-seguridad-aislamiento-rls-y-permisos-rpc)
 10. [Esquema de Base de Datos y Migraciones Versionadas](#10-esquema-de-base-de-datos-y-migraciones-versionadas)
 11. [Funcionalidades Deliberadamente Pospuestas](#11-funcionalidades-deliberadamente-pospuestas)
 
@@ -25,111 +25,131 @@
 
 ## 1. RESUMEN EJECUTIVO Y ESTADO DE FASES
 
-SSCARS Garage 2.0 une la colección física con un bucle de retención y gamificación digital diario.
+SSCARS Garage 2.0 une el coleccionismo físico con la personalización virtual profunda.
 
 ### Estado Actual de Fases:
-- **✅ FASE 1 (Foundation):** Tablas maestras, Storage, catálogo y Gold inventory en Supabase.
-- **✅ HARDENING (R1–R5):** Protección de perfiles, permisos RPC y search_path seguro.
-- **✅ FASE 2 & 2.1 (Auth + Garage + Colección):** Autenticación GoTrue, álbum de 15 cartas JDM y RLS estricto por usuario.
-- **✅ FASE 3 (Daily Reward + Cartas Digitales + XP):**
-  - Motor de Daily Drop server-side (`claim_daily_reward_atomic()`).
-  - Asignación atómica de cartas digitales a `public.user_cards`.
-  - Política de duplicados con conversión a **Bonus XP (+250 XP)** cuando el catálogo estándar está completo.
-  - Sorteo de Gold Chase (1/500) sincronizado con el inventario físico de 100 unidades.
-  - Timezone comercial de reinicio diario fijada en **`Europe/Madrid`**.
-  - Interfaz interactiva de Daily Drop y modal de reveal en `/garage.html`.
+- **✅ FASE 1 (Foundation):** Esquema relacional en Supabase PostgreSQL, Storage, catálogo base y Gold inventory (100 unidades).
+- **✅ PARCHE HARDENING (R1–R5):** Protección de perfiles, revocación de RPCs públicas, recompensa diaria server-side y `search_path` seguro.
+- **✅ FASE 2 & 2.1 (Auth + Garage + Colección):** GoTrue Auth, álbum digital de 15 cartas JDM y RLS estricto por usuario.
+- **✅ FASE 3 (Daily Reward + Digital Cards + XP):** Motor atómico de Daily Drop en `Europe/Madrid`, política anti-duplicados y ledger de XP idempotente.
+- **✅ FASE 4 (Tuning + Builds + Snapshots):**
+  - Catálogo de piezas de tuning en 5 categorías (`wheels`, `paint`, `spoiler`, `exhaust`, `body_kit`).
+  - Validación estricta de ownership: solo se pueden tunear coches poseídos en `user_cards`.
+  - Requisitos de XP por pieza verificados en servidor.
+  - Cálculo de estadísticas finales server-side (`hp`, `top_speed_kmh`, `acceleration_0_100`, `handling`, `style_points`).
+  - Múltiples builds por coche (`public.builds`).
+  - Snapshots históricos inmutables y versionados (`public.build_snapshots`), protegidos por trigger de base de datos contra `UPDATE` y `DELETE`.
 
 ---
 
-## 2. CICLO DE GAMIFICACIÓN Y FLUJO DAILY DROP
+## 2. ARQUITECTURA DE AUTENTICACIÓN Y AUTORIDAD
+
+- **Única Fuente de Verdad:** Supabase GoTrue y PostgreSQL (`auth.uid()`).
+- **Seguridad en Cliente:** `public/js/auth.js` utiliza exclusivamente `SUPABASE_URL` y `SUPABASE_ANON_KEY`. Las peticiones se autorizan mediante `Bearer <JWT>`. Ante un error HTTP 401, la sesión local se purga de inmediato.
+- `SUPABASE_SERVICE_ROLE_KEY` reside exclusivamente en el backend y jamás se expone al cliente.
+
+---
+
+## 3. MODELO DE PROPIEDAD DE CARTAS
+
+$$\text{cars (catálogo 15)} \longrightarrow \text{cards (definición)} \longrightarrow \text{user\_cards (propiedad real)}$$
+
+- **Principio Fundamental de Ownership:** Un usuario solo puede acceder al modo Tuning de un vehículo si existe al menos una fila en `public.user_cards` donde `user_id = auth.uid()` y `card.car_id = car_id`.
+- Si el usuario no posee el vehículo, la interfaz bloquea el acceso (`🔒 Unlock this car in your Garage first`) y el procedimiento PostgreSQL `save_build_atomic()` rechaza la transacción a nivel de servidor.
+
+---
+
+## 4. MÓDULO DE TUNING Y CATÁLOGO DE PIEZAS
+
+Las piezas se almacenan en la tabla `public.tuning_parts` (`010_tuning_builds_and_snapshots.sql`) estructuradas en 5 categorías estándar:
+
+| Categoría | Pieza | Slug | Requisito XP | Modificadores |
+|---|---|---|---|---|
+| **Wheels** | Llantas de Serie | `wheels-stock` | 0 XP | 0 CV, 0 Manejo, 0 Estilo |
+| **Wheels** | Llantas Street Rays TE37 | `wheels-street` | 100 XP | +2 Manejo, +4 Estilo |
+| **Wheels** | Llantas Competición Magnesio | `wheels-racing` | 500 XP | +5 Manejo, +8 Estilo |
+| **Paint** | Pintura de Serie | `paint-stock` | 0 XP | 0 CV, 0 Manejo, 0 Estilo |
+| **Paint** | Midnight Purple III | `paint-midnight-purple` | 250 XP | +8 Estilo |
+| **Paint** | Negro Carbón Satinado | `paint-carbon-black` | 150 XP | +5 Estilo |
+| **Paint** | Blanco Campeonato Type R | `paint-championship-white` | 100 XP | +4 Estilo |
+| **Paint** | Rojo Fórmula GT | `paint-formula-red` | 100 XP | +4 Estilo |
+| **Spoiler** | Alerón de Serie | `spoiler-stock` | 0 XP | 0 CV, 0 Manejo, 0 Vel |
+| **Spoiler** | Ducktail Callejero | `spoiler-ducktail` | 150 XP | +2 Manejo, +2 km/h, +5 Estilo |
+| **Spoiler** | Alerón GT de Carbono Alto | `spoiler-gt-wing` | 400 XP | +6 Manejo, -2 km/h, +7 Estilo |
+| **Exhaust** | Escape de Serie | `exhaust-stock` | 0 XP | 0 CV, 0.0s Acel, 0 Estilo |
+| **Exhaust** | Escape Deportivo Inox | `exhaust-sport` | 150 XP | +5 CV, -0.1s Acel, +3 Estilo |
+| **Exhaust** | Línea Completa de Titanio | `exhaust-titanium` | 600 XP | +12 CV, -0.2s Acel, +8 Estilo |
+| **Body Kit** | Carrocería de Serie | `bodykit-stock` | 0 XP | 0 CV, 0 Manejo, 0 Estilo |
+| **Body Kit** | Splitter y Taloneras Street | `bodykit-street` | 200 XP | +3 Manejo, +6 Estilo |
+| **Body Kit** | Kit Ensanchado Widebody GT | `bodykit-widebody` | 750 XP | +7 Manejo, +12 Estilo |
+
+---
+
+## 5. CÁLCULO DE STATS SERVER-SIDE Y REGLAS DE XP
+
+- **Función PostgreSQL Centralizada:** `public.calculate_build_stats(p_car_id, p_part_slugs)`
+  - Obtiene los `base_stats` del vehículo desde `public.cars`.
+  - Valida que no haya más de 1 pieza por categoría.
+  - Suma los modificadores numéricos y aplica límites físicos:
+    - $\text{Potencia (CV)} = \text{Base} + \sum \Delta \text{HP}$
+    - $\text{0-100 km/h} = \max(2.0, \text{Base} + \sum \Delta \text{Accel})$
+    - $\text{Manejo} = \min(100, \max(1, \text{Base} + \sum \Delta \text{Handling}))$
+    - $\text{Puntos de Estilo} = \sum \Delta \text{Style}$
+- **Validación de XP:** Al guardar una build, el procedimiento `save_build_atomic()` comprueba en `public.profiles` que el XP del usuario sea $\ge$ al `xp_required` de cada pieza seleccionada.
+
+---
+
+## 6. CICLO DE VIDA DE BUILDS (UN COCHE ➔ MÚLTIPLES CONFIGURACIONES)
+
+- Un usuario puede crear y almacenar múltiples configuraciones para un mismo coche en `public.builds` (ejemplo: *"Midnight Beast"*, *"Track Day Setup"*, *"Touge Drift"*).
+- Cada build almacena su nombre, coche (`car_id`), piezas equipadas en formato canónico JSONB y estadísticas calculadas.
+- El usuario puede editar, renombrar y eliminar sus builds en cualquier momento.
+
+---
+
+## 7. SNAPSHOTS INMUTABLES Y VERSIONADO
+
+Cuando un usuario decide congelar una build (para compra física futura o generación de Car Card):
 
 ```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────────────┐
-│  VISITANTE   │ ──► │    LOGIN     │ ──► │  MI GARAJE   │ ──► │ 🎁 ABRIR DAILY DROP  │
-└──────────────┘     └──────────────┘     └──────────────┘     └──────────┬───────────┘
-                                                                          │
-                                                                          ▼
-                                                       ┌──────────────────────────────────────┐
-                                                       │ RPC: claim_daily_reward_atomic()     │
-                                                       │ (Identidad segura: auth.uid())       │
-                                                       └──────────────────┬───────────────────┘
-                                                                          │
-                                        ┌─────────────────────────────────┴─────────────────────────────────┐
-                                        ▼                                                                   ▼
-                         ┌─────────────────────────────┐                                     ┌─────────────────────────────┐
-                         │      SI TOCA CARTA JDM      │                                     │       SI TOCA XP BOOST      │
-                         │ 1. Busca carta no poseída   │                                     │ 1. Base 50 XP + 25 XP/racha │
-                         │ 2. Asigna a `user_cards`    │                                     │ 2. Registra en `xp_ledger`  │
-                         │ 3. Si ya las tiene todas:   │                                     │ 3. Recalcula nivel oficial  │
-                         │    Convierte a +250 XP bonus│                                     │                             │
-                         └─────────────────────────────┘                                     └─────────────────────────────┘
+BUILD ACTUAL (public.builds)
+       │
+       ▼ RPC: create_build_snapshot_atomic(build_id)
+       │
+SNAPSHOT INMUTABLE (public.build_snapshots)
+       ├── build_id: UUID (ON DELETE SET NULL)
+       ├── user_id: UUID
+       ├── car_id: VARCHAR
+       ├── build_data: JSONB (Copia canónica completa de piezas y metadatos)
+       ├── stats: JSONB (Estadísticas finales congeladas)
+       └── snapshot_version: 1 (Versionado formal)
 ```
 
----
-
-## 3. MOTOR DE RECOMPENSAS DIARIAS
-
-Toda la lógica de probabilidades, asignación y validación se ejecuta en el procedimiento almacenado `claim_daily_reward_atomic()` (`009_seed_cards_and_daily_reward_engine.sql`):
-
-### Matriz de Probabilidades Server-Side:
-- **69.8% · Daily XP Boost:** $50\text{ XP} + (25\text{ XP} \times \text{racha})$ (hasta 500 XP máx).
-- **25.0% · Digital Card Drop:** Asignación garantizada de una carta que el usuario **no posea**.
-- **5.0% · Mega XP Boost:** $200\text{ XP} + (20\text{ XP} \times \text{racha})$.
-- **0.2% (1/500) · Gold Chase Card:** Carta secreta dorada sujeta a stock físico en `gold_inventory`.
+### Garantías de Inmutabilidad Especial:
+1. **Trigger de Base de Datos:** `trg_build_snapshots_immutable` (`BEFORE UPDATE OR DELETE`) dispara `RAISE EXCEPTION` ante cualquier intento de alteración o borrado.
+2. **Independencia Histórica:** Modificar o eliminar la build original después de tomar el snapshot **deja el snapshot 100% idéntico e intacto**.
+3. **Punto de Conexión para Render:** El snapshot proporciona los datos canónicos necesarios para que el futuro pipeline de renderizado genere la imagen HD correspondiente sin depender del estado actual del garaje.
 
 ---
 
-## 4. POLÍTICA ANTI-DUPLICADOS DE CARTAS
+## 8. PERSONALIZACIÓN VIRTUAL VS FABRICACIÓN FÍSICA
 
-Para evitar cartas repetidas inservibles en la colección digital:
-1. Al salir premio de carta, el motor busca una carta estándar que **no esté en `user_cards`** para ese usuario.
-2. Si el usuario ya posee las 15 cartas de la colección estándar: el servidor **convierte automáticamente la recompensa en +250 XP Bonus** (`duplicate_xp_bonus`).
-3. El cliente no interviene en la selección ni en la conversión.
-
----
-
-## 5. CÁLCULO DE RACHA (DAILY STREAK) Y TIMEZONE `Europe/Madrid`
-
-- **Día Comercial:** Evaluado con `(CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Madrid')::date`. El día cambia a las 00:00:00 hora peninsular española independientemente del horario UTC o cambios de verano/invierno.
-- **Racha Consecutiva:**
-  - Si `last_daily_claim` fue ayer en horario de Madrid $\rightarrow$ `daily_streak := daily_streak + 1`.
-  - Si no hubo reclamo ayer $\rightarrow$ `daily_streak := 1`.
-  - Si ya reclamó hoy $\rightarrow$ Aborta devolviendo `{ alreadyClaimed: true }` sin alterar la racha ni duplicar puntos.
+> 💡 **Nota de Arquitectura:**  
+> **Personalización Virtual $\neq$ Variantes de Fabricación Física.**  
+> El garaje digital ofrece amplias combinaciones visuales para la experiencia de juego y colección. La fabricación física bajo demanda utilizará posteriormente un conjunto controlado de variantes y adapters modulares, mapeados a partir de los snapshots congelados.
 
 ---
 
-## 6. GESTIÓN DE XP, LEDGER IDEMPOTENTE Y NIVELES
+## 9. SEGURIDAD, AISLAMIENTO RLS Y PERMISOS RPC
 
-- **Ledger Inmutable:** Cada ganancia de XP se registra en `public.xp_ledger` con clave única `daily_{user_id}_{date}`.
-- **Fórmula Oficial Única:**
-  $$\text{Level} = \left\lfloor \left( \frac{\text{XP}}{100} \right)^{1 / 1.8} \right\rfloor + 1$$
-  Ejecutada de forma centralizada por `public.calculate_driver_level(p_xp)`.
-
----
-
-## 7. INTEGRACIÓN CON INVENTARIO GOLD
-
-- Si el sorteo diario concede la edición Gold Chase (1/500), se invoca internamente `public.allocate_gold_atomic(car_id)` con bloqueo `FOR UPDATE`.
-- Si el cupo físico de ese coche está completo, se convierte a **Mega XP (+300 XP)**, garantizando que **jamás se sobrepasen las 100 unidades físicas de Gold**.
-
----
-
-## 8. SEGURIDAD, AISLAMIENTO RLS Y PERMISOS RPC
-
-- **`claim_daily_reward_atomic()`:** `REVOKE ALL FROM PUBLIC, anon; GRANT EXECUTE TO authenticated, service_role;`
-- **Identidad:** Forzada desde `auth.uid()`. Un usuario no puede reclamar para otro.
-- **Protección contra Concurrencia:** Bloqueo pesimista `SELECT ... FOR UPDATE` sobre la fila del perfil y restricción `UNIQUE(user_id, reward_date)` en `daily_rewards`.
-
----
-
-## 9. PERSISTENCIA Y COEXISTENCIA V1 / V2
-
-| Componente | Estado V1 | Estado V2 en Fase 3 |
+| Objeto | Política RLS / Permiso | Acceso |
 |---|---|---|
-| **Tienda y Carrito** | `localStorage` (`sscars_cart_v1`) intacto. | Coexiste sin interferencias. |
-| **Checkout Stripe** | Sesiones clásicas directas. | Intacto. |
-| **Gamificación Diaria** | No existía en V1. | Operativa en Supabase PostgreSQL. |
-| **Colección Digital** | No existía en V1. | Operativa en Supabase (`user_cards`). |
+| `tuning_parts` | `tuning_parts_select_public` | SELECT público (`active = true`). Escritura exclusiva de backend. |
+| `builds` | `builds_select_own`<br>`builds_insert_own`<br>`builds_update_own`<br>`builds_delete_own` | Gestión privada exclusiva para `auth.uid() = user_id`. |
+| `build_snapshots` | `build_snapshots_select_own`<br>`build_snapshots_insert_own` | SELECT e INSERT para `auth.uid() = user_id`. UPDATE y DELETE bloqueados por trigger. |
+| `save_build_atomic()` | RPC `SECURITY DEFINER` | `REVOKE FROM PUBLIC, anon; GRANT TO authenticated, service_role;` |
+| `create_build_snapshot_atomic()` | RPC `SECURITY DEFINER` | `REVOKE FROM PUBLIC, anon; GRANT TO authenticated, service_role;` |
+| `delete_build_atomic()` | RPC `SECURITY DEFINER` | `REVOKE FROM PUBLIC, anon; GRANT TO authenticated, service_role;` |
 
 ---
 
@@ -145,18 +165,18 @@ supabase/migrations/
 ├── 006_security_hardening.sql        (Parche de hardening R1–R5)
 ├── 007_user_cards_private_rls.sql    (Aislamiento estricto de colección por usuario)
 ├── 008_driver_level_and_timezone.sql (Función inmutable XP->Level y timezone Europe/Madrid)
-└── 009_seed_cards_and_daily_reward_engine.sql (Seed de 30 cartas + Motor Daily Drop y duplicados)
+├── 009_seed_cards_and_daily_reward_engine.sql (Seed de 30 cartas + Motor Daily Drop y duplicados)
+└── 010_tuning_builds_and_snapshots.sql (Catálogo 5 categorías, cálculo stats, builds y snapshots versionados)
 ```
 
 ---
 
 ## 11. FUNCIONALIDADES DELIBERADAMENTE POSPUESTAS
 
-Las siguientes áreas quedan expresamente para fases posteriores:
-1. **Fase 4:** Configurador de Tuning 3D y `build_snapshots`.
-2. **Fase 5:** Motor de renders HD de Car Cards y carga en Supabase Storage.
-3. **Fase 6:** Adaptador de Printful y despacho segregado de la **SSCARS Gift Box**.
-4. **Fase 7:** Integración de compra de builds y doble escritura en webhook de Stripe.
+Las siguientes funcionalidades quedan para fases posteriores:
+1. **Fase 5:** Motor de renders HD de Car Cards y carga en Supabase Storage a partir de snapshots.
+2. **Fase 6:** Adaptador de Printful y despacho de **SSCARS Gift Box**.
+3. **Fase 7:** Integración de compra física de builds en Stripe Checkout V2 con doble escritura.
 
 ---
-*Fin del documento ARCHITECTURE_V2.md (Versión 2.2.0)*
+*Fin del documento ARCHITECTURE_V2.md (Versión 2.3.0)*

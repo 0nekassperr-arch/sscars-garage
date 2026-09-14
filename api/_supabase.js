@@ -74,6 +74,14 @@ export async function getCarsCatalog() {
 }
 
 /**
+ * Obtiene las piezas de tuning activas
+ */
+export async function getTuningPartsCatalog() {
+  const res = await postgrestRequest('tuning_parts?active=eq.true&order=category.asc,xp_required.asc', { method: 'GET' });
+  return res.ok ? res.data : [];
+}
+
+/**
  * Obtiene el perfil de un usuario
  */
 export async function getUserProfile(userId) {
@@ -92,21 +100,46 @@ export async function getUserCards(userId) {
 }
 
 /**
- * Guarda un snapshot inmutable de build
+ * Obtiene los builds de un usuario
  */
-export async function createBuildSnapshot({ buildId, userId, carId, buildData, stats, renderUrl = null }) {
-  if (!userId || !carId || !buildData) {
-    return { ok: false, error: 'Faltan parámetros obligatorios para el snapshot' };
-  }
-  const payload = {
-    build_id: buildId || null,
-    user_id: userId,
-    car_id: carId,
-    build_data: buildData,
-    stats: stats || {},
-    render_url: renderUrl
-  };
-  return postgrestRequest('build_snapshots', { method: 'POST', body: payload });
+export async function getUserBuilds(userId, userToken = null) {
+  if (!userId) return [];
+  const headers = userToken ? { Authorization: `Bearer ${userToken}` } : {};
+  const res = await postgrestRequest(`builds?user_id=eq.${userId}&select=*&order=created_at.desc`, {
+    method: 'GET',
+    useServiceRole: !userToken,
+    headers
+  });
+  return res.ok ? res.data : [];
+}
+
+/**
+ * Guarda o actualiza un build de forma atómica validando ownership y XP en servidor
+ */
+export async function saveBuildAtomic({ carId, name, partSlugs = [], buildId = null, userToken = null }) {
+  const headers = userToken ? { Authorization: `Bearer ${userToken}` } : {};
+  return rpc('save_build_atomic', {
+    p_car_id: carId,
+    p_name: name,
+    p_part_slugs: partSlugs,
+    p_build_id: buildId
+  }, { useServiceRole: !userToken, headers });
+}
+
+/**
+ * Crea un snapshot inmutable a partir de un build
+ */
+export async function createBuildSnapshotAtomic({ buildId, userToken = null }) {
+  const headers = userToken ? { Authorization: `Bearer ${userToken}` } : {};
+  return rpc('create_build_snapshot_atomic', { p_build_id: buildId }, { useServiceRole: !userToken, headers });
+}
+
+/**
+ * Elimina un build propio
+ */
+export async function deleteBuildAtomic({ buildId, userToken = null }) {
+  const headers = userToken ? { Authorization: `Bearer ${userToken}` } : {};
+  return rpc('delete_build_atomic', { p_build_id: buildId }, { useServiceRole: !userToken, headers });
 }
 
 /**
@@ -163,17 +196,14 @@ export async function getProductBundleItems(productId) {
  * Registra una orden V2 con sus ítems y líneas de fulfillment segregadas
  */
 export async function recordOrderV2({ order, items, fulfillments = [] }) {
-  // 1. Insertar orden
   const orderRes = await postgrestRequest('orders', { method: 'POST', body: order });
   if (!orderRes.ok) return orderRes;
   const createdOrder = orderRes.data[0];
 
-  // 2. Insertar order_items con precio histórico congelado
   const itemsWithOrderId = items.map(item => ({ ...item, order_id: createdOrder.id }));
   const itemsRes = await postgrestRequest('order_items', { method: 'POST', body: itemsWithOrderId });
   if (!itemsRes.ok) return itemsRes;
 
-  // 3. Insertar fulfillments si se especificaron
   if (fulfillments.length > 0) {
     const fulfillmentsWithOrderId = fulfillments.map(f => ({ ...f, order_id: createdOrder.id }));
     await postgrestRequest('fulfillments', { method: 'POST', body: fulfillmentsWithOrderId });

@@ -178,6 +178,7 @@
               <div class="stat-row"><span class="stat-k">0-100:</span><span class="stat-v">${stats.acceleration_0_100 || 5.0} s</span></div>
               <div class="stat-row"><span class="stat-k">Manejo:</span><span class="stat-v">${stats.handling || 90}/100</span></div>
             </div>
+            <button class="btn-tune" onclick="openTuningStudio('${car.id}')">🔧 TUNEAR / BUILDS</button>
             <div class="card-serial">${owned.code || 'CARD-' + car.slug.toUpperCase() + '-001'}</div>
           </div>
         `;
@@ -197,6 +198,7 @@
               <div class="stat-row"><span class="stat-k">Estado:</span><span class="stat-v" style="color:#FF4444">No descubierta</span></div>
               <div class="stat-row"><span class="stat-k">Caja:</span><span class="stat-v">Mystery Box</span></div>
             </div>
+            <button class="btn-tune" style="opacity:0.4;cursor:not-allowed;" onclick="alert('🔒 Desbloquea este coche en tu Garaje primero para poder personalizarlo.')">🔒 BLOQUEADO</button>
             <div class="card-serial" style="color:#666">Disponible en la tienda</div>
           </div>
         `;
@@ -480,5 +482,314 @@
     if (modal) modal.classList.remove('open');
     loadGarageData();
   };
+
+  // ============================================================================
+  // TUNING STUDIO & BUILDS MANAGER
+  // ============================================================================
+
+  let allTuningParts = [];
+  let userBuildsList = [];
+  let currentTuningCar = null;
+  let selectedParts = {
+    wheels: 'wheels-stock',
+    paint: 'paint-stock',
+    spoiler: 'spoiler-stock',
+    exhaust: 'exhaust-stock',
+    body_kit: 'bodykit-stock'
+  };
+  let activeEditingBuildId = null;
+
+  window.openTuningStudio = async function(carId) {
+    const car = currentCars.find(c => c.id === carId);
+    if (!car) return;
+
+    // Verificar ownership en frontend antes de abrir
+    const isOwned = currentUserCards.some(uc => uc.cards && uc.cards.car_id === carId);
+    if (!isOwned) {
+      alert('🔒 Desbloquea este coche en tu Garaje primero para poder personalizarlo.');
+      return;
+    }
+
+    currentTuningCar = car;
+    activeEditingBuildId = null;
+    selectedParts = {
+      wheels: 'wheels-stock',
+      paint: 'paint-stock',
+      spoiler: 'spoiler-stock',
+      exhaust: 'exhaust-stock',
+      body_kit: 'bodykit-stock'
+    };
+
+    const modal = $('tuningModal');
+    if (modal) modal.classList.add('open');
+
+    // Cargar piezas y builds si no están cargados
+    try {
+      const [parts, builds] = await Promise.all([
+        window.SSCARS_AUTH.getTuningParts().catch(() => getFallbackTuningParts()),
+        window.SSCARS_AUTH.getUserBuilds().catch(() => [])
+      ]);
+      allTuningParts = parts && parts.length ? parts : getFallbackTuningParts();
+      userBuildsList = builds || [];
+    } catch (e) {
+      allTuningParts = getFallbackTuningParts();
+      userBuildsList = [];
+    }
+
+    renderTuningStudio();
+  };
+
+  window.closeTuningStudio = function() {
+    const modal = $('tuningModal');
+    if (modal) modal.classList.remove('open');
+    currentTuningCar = null;
+    activeEditingBuildId = null;
+  };
+
+  function renderTuningStudio() {
+    if (!currentTuningCar) return;
+
+    const thumb = $('tuneCarThumb');
+    const nameEl = $('tuneCarName');
+    const modelEl = $('tuneCarModel');
+    const nameInput = $('buildNameInput');
+
+    if (thumb) {
+      const img = currentTuningCar.images && currentTuningCar.images.front ? currentTuningCar.images.front : `images/${currentTuningCar.slug}-front.webp`;
+      thumb.innerHTML = `<img src="${img}" alt="${currentTuningCar.name}">`;
+    }
+    if (nameEl) nameEl.textContent = currentTuningCar.name;
+    if (modelEl) modelEl.textContent = `${currentTuningCar.real_model} (${currentTuningCar.year})`;
+    if (nameInput) nameInput.value = `Custom ${currentTuningCar.name}`;
+
+    // Renderizar categorías de piezas
+    const categoriesWrap = $('tuningCategoriesWrap');
+    if (categoriesWrap) {
+      const categories = [
+        { key: 'wheels', label: '🛞 Llantas (Wheels)' },
+        { key: 'paint', label: '🎨 Pintura (Paint)' },
+        { key: 'spoiler', label: '🏎️ Alerón (Spoiler)' },
+        { key: 'exhaust', label: '💨 Escape (Exhaust)' },
+        { key: 'body_kit', label: '📐 Kit de Carrocería (Body Kit)' }
+      ];
+
+      const userProfile = window.SSCARS_AUTH.getUser() ? (window.SSCARS_AUTH.getProfile() || { xp: 0 }) : { xp: 0 };
+      const currentXp = Number(userProfile.xp || 0);
+
+      categoriesWrap.innerHTML = categories.map(cat => {
+        const partsInCat = allTuningParts.filter(p => p.category === cat.key);
+        return `
+          <div>
+            <div class="tuning-cat-title">${cat.label}</div>
+            <div class="parts-row">
+              ${partsInCat.map(p => {
+                const isSelected = selectedParts[cat.key] === p.slug;
+                const isLocked = p.xp_required > currentXp;
+                return `
+                  <button class="part-btn ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''}" 
+                          onclick="selectTuningPart('${cat.key}', '${p.slug}', ${p.xp_required})">
+                    <span>${p.name}</span>
+                    <span class="part-xp-tag">${p.xp_required > 0 ? (isLocked ? '🔒 ' + p.xp_required + ' XP' : p.xp_required + ' XP') : 'Gratis'}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    updateTuningStatsPreview();
+    renderSavedBuildsList();
+  }
+
+  window.selectTuningPart = function(category, slug, xpRequired) {
+    const profile = window.SSCARS_AUTH.getUser() ? (window.SSCARS_AUTH.getProfile() || { xp: 0 }) : { xp: 0 };
+    if (xpRequired > (profile.xp || 0)) {
+      alert(`🔒 Requiere ${xpRequired} XP. Consigue más experiencia en el Daily Drop para desbloquear esta pieza.`);
+      return;
+    }
+    selectedParts[category] = slug;
+    renderTuningStudio();
+  };
+
+  function updateTuningStatsPreview() {
+    if (!currentTuningCar) return;
+
+    const base = currentTuningCar.base_stats || {};
+    let hp = base.hp || 280;
+    let accel = base.acceleration_0_100 || 5.0;
+    let handling = base.handling || 90;
+    let style = 0;
+
+    let modHp = 0;
+    let modAccel = 0;
+    let modHandling = 0;
+
+    Object.values(selectedParts).forEach(slug => {
+      const part = allTuningParts.find(p => p.slug === slug);
+      if (part && part.stats_modifier) {
+        const m = part.stats_modifier;
+        if (m.hp) { hp += m.hp; modHp += m.hp; }
+        if (m.acceleration_0_100) { accel += m.acceleration_0_100; modAccel += m.acceleration_0_100; }
+        if (m.handling) { handling += m.handling; modHandling += m.handling; }
+        if (m.style) { style += m.style; }
+      }
+    });
+
+    accel = Math.max(2.0, Math.round(accel * 10) / 10);
+    handling = Math.min(100, Math.max(1, handling));
+
+    const hpEl = $('tstatHp');
+    const hpModEl = $('tstatHpMod');
+    const accEl = $('tstatAccel');
+    const accModEl = $('tstatAccelMod');
+    const hanEl = $('tstatHandling');
+    const hanModEl = $('tstatHandlingMod');
+    const styEl = $('tstatStyle');
+
+    if (hpEl) hpEl.textContent = hp;
+    if (hpModEl) hpModEl.textContent = modHp > 0 ? `(+${modHp})` : '';
+    if (accEl) accEl.textContent = accel.toFixed(1);
+    if (accModEl) accModEl.textContent = modAccel < 0 ? `(${modAccel.toFixed(1)})` : '';
+    if (hanEl) hanEl.textContent = handling;
+    if (hanModEl) hanModEl.textContent = modHandling > 0 ? `(+${modHandling})` : '';
+    if (styEl) styEl.textContent = style;
+  }
+
+  function renderSavedBuildsList() {
+    const listEl = $('savedBuildsList');
+    if (!listEl || !currentTuningCar) return;
+
+    const buildsForThisCar = userBuildsList.filter(b => b.car_id === currentTuningCar.id);
+    if (buildsForThisCar.length === 0) {
+      listEl.innerHTML = `<p style="font-size: 12px; color: var(--text-muted);">No tienes builds guardadas aún para este modelo.</p>`;
+      return;
+    }
+
+    listEl.innerHTML = buildsForThisCar.map(b => {
+      const stats = b.stats || {};
+      return `
+        <div class="saved-build-item">
+          <div>
+            <div style="font-size: 14px; font-weight: 800;">${b.name}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">
+              ${stats.hp || '-'} CV · ${stats.acceleration_0_100 || '-'}s · ${stats.handling || '-'}/100
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="loadSavedBuild('${b.id}')">Cargar</button>
+            <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px; color: var(--gold); border-color: rgba(255,215,0,0.3);" onclick="handleSnapshotClick('${b.id}')">📸 Snapshot</button>
+            <button class="btn-secondary btn-logout" style="font-size: 11px; padding: 4px 8px;" onclick="handleDeleteBuildClick('${b.id}')">✕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.loadSavedBuild = function(buildId) {
+    const build = userBuildsList.find(b => b.id === buildId);
+    if (!build) return;
+
+    activeEditingBuildId = build.id;
+    const nameInput = $('buildNameInput');
+    if (nameInput) nameInput.value = build.name;
+
+    const parts = build.parts || {};
+    selectedParts = {
+      wheels: parts.wheels || 'wheels-stock',
+      paint: parts.paint || 'paint-stock',
+      spoiler: parts.spoiler || 'spoiler-stock',
+      exhaust: parts.exhaust || 'exhaust-stock',
+      body_kit: parts.body_kit || 'bodykit-stock'
+    };
+
+    renderTuningStudio();
+  };
+
+  window.handleSaveBuildClick = async function() {
+    if (!currentTuningCar) return;
+    const nameInput = $('buildNameInput');
+    const buildName = (nameInput?.value || '').trim() || `Custom ${currentTuningCar.name}`;
+    const partSlugs = Object.values(selectedParts);
+
+    const btn = $('btnSaveBuild');
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando en Servidor...'; }
+
+    try {
+      const res = await window.SSCARS_AUTH.saveBuild({
+        carId: currentTuningCar.id,
+        name: buildName,
+        partSlugs: partSlugs,
+        buildId: activeEditingBuildId
+      });
+
+      if (res && res.success) {
+        alert('✅ ¡Build guardada exitosamente en tu Garaje!');
+        userBuildsList = await window.SSCARS_AUTH.getUserBuilds();
+        renderTuningStudio();
+      }
+    } catch (err) {
+      alert(`❌ Error al guardar build: ${err.message}`);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '💾 Guardar Build'; }
+    }
+  };
+
+  window.handleSnapshotClick = async function(specificBuildId) {
+    let targetBuildId = specificBuildId || activeEditingBuildId;
+    if (!targetBuildId) {
+      alert('Debes guardar la Build primero antes de crear su Snapshot inmutable.');
+      return;
+    }
+
+    const btn = $('btnCreateSnapshot');
+    if (btn) { btn.disabled = true; btn.textContent = 'Creando Snapshot Inmutable...'; }
+
+    try {
+      const res = await window.SSCARS_AUTH.createBuildSnapshot(targetBuildId);
+      if (res && res.success) {
+        alert('📸 ¡Snapshot inmutable creado con éxito! La configuración histórica ha quedado congelada para compras físicas.');
+      }
+    } catch (err) {
+      alert(`❌ Error al crear snapshot: ${err.message}`);
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '📸 Crear Snapshot Inmutable'; }
+    }
+  };
+
+  window.handleDeleteBuildClick = async function(buildId) {
+    if (!confirm('¿Seguro que deseas eliminar esta build de tu garaje?')) return;
+    try {
+      await window.SSCARS_AUTH.deleteBuild(buildId);
+      userBuildsList = await window.SSCARS_AUTH.getUserBuilds();
+      if (activeEditingBuildId === buildId) activeEditingBuildId = null;
+      renderTuningStudio();
+    } catch (err) {
+      alert(`Error al eliminar build: ${err.message}`);
+    }
+  };
+
+  function getFallbackTuningParts() {
+    return [
+      { category: 'wheels', name: 'Llantas de Serie', slug: 'wheels-stock', xp_required: 0, stats_modifier: { hp: 0, handling: 0, style: 0 } },
+      { category: 'wheels', name: 'Llantas Street Rays TE37', slug: 'wheels-street', xp_required: 100, stats_modifier: { hp: 0, handling: 2, style: 4 } },
+      { category: 'wheels', name: 'Llantas Competición Magnesio', slug: 'wheels-racing', xp_required: 500, stats_modifier: { hp: 0, handling: 5, style: 8 } },
+      { category: 'paint', name: 'Pintura Original de Fábrica', slug: 'paint-stock', xp_required: 0, stats_modifier: { hp: 0, handling: 0, style: 0 } },
+      { category: 'paint', name: 'Midnight Purple III', slug: 'paint-midnight-purple', xp_required: 250, stats_modifier: { hp: 0, handling: 0, style: 8 } },
+      { category: 'paint', name: 'Negro Carbón Satinado', slug: 'paint-carbon-black', xp_required: 150, stats_modifier: { hp: 0, handling: 0, style: 5 } },
+      { category: 'paint', name: 'Blanco Campeonato Type R', slug: 'paint-championship-white', xp_required: 100, stats_modifier: { hp: 0, handling: 0, style: 4 } },
+      { category: 'paint', name: 'Rojo Fórmula GT', slug: 'paint-formula-red', xp_required: 100, stats_modifier: { hp: 0, handling: 0, style: 4 } },
+      { category: 'spoiler', name: 'Alerón de Serie', slug: 'spoiler-stock', xp_required: 0, stats_modifier: { hp: 0, handling: 0, style: 0 } },
+      { category: 'spoiler', name: 'Ducktail Callejero', slug: 'spoiler-ducktail', xp_required: 150, stats_modifier: { hp: 0, handling: 2, style: 5 } },
+      { category: 'spoiler', name: 'Alerón GT de Carbono Alto', slug: 'spoiler-gt-wing', xp_required: 400, stats_modifier: { hp: 0, handling: 6, style: 7 } },
+      { category: 'exhaust', name: 'Línea de Escape de Serie', slug: 'exhaust-stock', xp_required: 0, stats_modifier: { hp: 0, acceleration_0_100: 0.0, style: 0 } },
+      { category: 'exhaust', name: 'Escape Deportivo Inox', slug: 'exhaust-sport', xp_required: 150, stats_modifier: { hp: 5, acceleration_0_100: -0.1, style: 3 } },
+      { category: 'exhaust', name: 'Línea Completa de Titanio', slug: 'exhaust-titanium', xp_required: 600, stats_modifier: { hp: 12, acceleration_0_100: -0.2, style: 8 } },
+      { category: 'body_kit', name: 'Carrocería de Serie', slug: 'bodykit-stock', xp_required: 0, stats_modifier: { hp: 0, handling: 0, style: 0 } },
+      { category: 'body_kit', name: 'Splitter y Taloneras Street', slug: 'bodykit-street', xp_required: 200, stats_modifier: { hp: 0, handling: 3, style: 6 } },
+      { category: 'body_kit', name: 'Kit Ensanchado Widebody GT', slug: 'bodykit-widebody', xp_required: 750, stats_modifier: { hp: 0, handling: 7, style: 12 } }
+    ];
+  }
 
 })();

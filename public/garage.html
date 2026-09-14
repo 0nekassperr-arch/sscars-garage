@@ -307,6 +307,127 @@
       margin-bottom: 16px;
     }
 
+    /* Tuning Studio Modal */
+    .tuning-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 680px;
+      padding: 30px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .tuning-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 16px;
+    }
+    .tuning-car-thumb {
+      width: 70px;
+      height: 70px;
+      background: #0D0D0D;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .tuning-car-thumb img { max-width: 90%; max-height: 90%; object-fit: contain; }
+    .tuning-categories {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .tuning-cat-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .parts-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .part-btn {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #EEE;
+      white-space: nowrap;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      transition: all 0.2s;
+    }
+    .part-btn:hover { border-color: #666; }
+    .part-btn.selected {
+      background: rgba(255, 26, 26, 0.15);
+      border-color: var(--red);
+      color: #FFF;
+    }
+    .part-btn.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .part-xp-tag {
+      font-size: 10px;
+      color: #FF9900;
+      font-weight: 700;
+    }
+    .tuning-stats-panel {
+      background: #0D0D0D;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      text-align: center;
+    }
+    .tstat-val { font-size: 18px; font-weight: 900; font-family: var(--impact); margin-top: 2px; }
+    .tstat-mod { font-size: 11px; font-weight: 700; color: #55FF55; margin-left: 2px; }
+    .tuning-saved-builds {
+      margin-top: 24px;
+      border-top: 1px solid var(--card-border);
+      padding-top: 18px;
+    }
+    .saved-build-item {
+      background: #111;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .btn-tune {
+      background: #222;
+      color: #FFF;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 10px;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .btn-tune:hover { background: var(--red); border-color: var(--red); }
+
     /* Stats Overview */
     .collection-header {
       display: flex;
@@ -781,6 +902,68 @@
     <div style="font-size: 13px; color: #FF9900; font-weight: 700; margin-bottom: 20px;" id="rewardModalStreak">🔥 Racha de 1 día</div>
 
     <button class="btn-submit" onclick="closeDailyRewardModal()" style="width: 100%;">Continuar</button>
+  </div>
+</div>
+
+<!-- ================= MODAL DE TUNING STUDIO / BUILDS ================= -->
+<div class="modal-overlay" id="tuningModal">
+  <div class="tuning-box">
+    <button class="modal-close" onclick="closeTuningStudio()" aria-label="Cerrar modal">&times;</button>
+    
+    <div class="tuning-header">
+      <div class="tuning-car-thumb">
+        <img id="tuneCarThumb" src="" alt="Coche">
+      </div>
+      <div>
+        <h3 id="tuneCarName" style="font-size: 20px; font-weight: 800;">El Emperador Azul</h3>
+        <p id="tuneCarModel" style="font-size: 13px; color: var(--text-muted);">Nissan Skyline GT-R R34 (1999)</p>
+      </div>
+    </div>
+
+    <!-- Live Stats Panel -->
+    <div class="tuning-stats-panel">
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">POTENCIA</div>
+        <div class="tstat-val"><span id="tstatHp">327</span> CV <span class="tstat-mod" id="tstatHpMod"></span></div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">0-100 KM/H</div>
+        <div class="tstat-val"><span id="tstatAccel">4.9</span> s <span class="tstat-mod" id="tstatAccelMod"></span></div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">MANEJO</div>
+        <div class="tstat-val"><span id="tstatHandling">94</span>/100 <span class="tstat-mod" id="tstatHandlingMod"></span></div>
+      </div>
+      <div>
+        <div style="font-size: 11px; color: var(--text-muted);">ESTILO</div>
+        <div class="tstat-val" style="color: #FF9900;"><span id="tstatStyle">0</span> pts</div>
+      </div>
+    </div>
+
+    <!-- Category Pickers -->
+    <div class="tuning-categories" id="tuningCategoriesWrap">
+      <!-- Se llena dinámicamente con las categorías: wheels, paint, spoiler, exhaust, body_kit -->
+    </div>
+
+    <!-- Build Name and Save -->
+    <div style="background: #111; padding: 16px; border-radius: 12px; border: 1px solid var(--card-border); margin-bottom: 20px;">
+      <div class="input-group" style="margin-bottom: 12px;">
+        <label for="buildNameInput">Nombre de la Build</label>
+        <input type="text" id="buildNameInput" placeholder="ej. Wangan Midnight Beast" maxlength="40">
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-submit" style="flex: 1; margin-top: 0;" id="btnSaveBuild" onclick="handleSaveBuildClick()">💾 Guardar Build</button>
+        <button class="btn-secondary" style="background: #1A1700; border-color: rgba(255,215,0,0.4); color: var(--gold);" id="btnCreateSnapshot" onclick="handleSnapshotClick()">📸 Crear Snapshot Inmutable</button>
+      </div>
+    </div>
+
+    <!-- Saved Builds Section -->
+    <div class="tuning-saved-builds">
+      <h4 style="font-size: 14px; font-weight: 800; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Tus Builds Guardadas para este coche</h4>
+      <div id="savedBuildsList">
+        <p style="font-size: 12px; color: var(--text-muted);">No tienes builds guardadas aún para este modelo.</p>
+      </div>
+    </div>
   </div>
 </div>
 
