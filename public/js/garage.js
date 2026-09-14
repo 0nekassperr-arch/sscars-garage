@@ -744,18 +744,76 @@
     }
 
     const btn = $('btnCreateSnapshot');
-    if (btn) { btn.disabled = true; btn.textContent = 'Creando Snapshot Inmutable...'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Creando Snapshot & Render...'; }
 
     try {
-      const res = await window.SSCARS_AUTH.createBuildSnapshot(targetBuildId);
-      if (res && res.success) {
-        alert('📸 ¡Snapshot inmutable creado con éxito! La configuración histórica ha quedado congelada para compras físicas.');
+      // 1. Crear Snapshot inmutable
+      const snapRes = await window.SSCARS_AUTH.createBuildSnapshot(targetBuildId);
+      if (snapRes && snapRes.success && snapRes.snapshot) {
+        // 2. Solicitar Render determinista para el Snapshot
+        const renderRes = await window.SSCARS_AUTH.requestBuildRender(snapRes.snapshot.id);
+        alert('📸 ¡Snapshot inmutable creado y Render HD generado con éxito!');
+        if (renderRes && renderRes.job) {
+          openCarCardModal(snapRes.snapshot, renderRes.job);
+        }
       }
     } catch (err) {
-      alert(`❌ Error al crear snapshot: ${err.message}`);
+      alert(`❌ Error al procesar snapshot/render: ${err.message}`);
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = '📸 Crear Snapshot Inmutable'; }
     }
+  };
+
+  window.openCarCardModal = function(snapshot, renderJob) {
+    const modal = $('carCardModal');
+    if (!modal) return;
+
+    const buildData = snapshot.build_data || {};
+    const stats = snapshot.stats || {};
+    const parts = buildData.parts || {};
+    const profile = window.SSCARS_AUTH.getUser() ? (window.SSCARS_AUTH.getProfile() || {}) : {};
+
+    const nameEl = $('hdCardCarName');
+    const modelEl = $('hdCardModel');
+    const buildNameEl = $('hdCardBuildName');
+    const ownerEl = $('hdCardOwner');
+    const hpEl = $('hdCardHp');
+    const accEl = $('hdCardAccel');
+    const hanEl = $('hdCardHandling');
+    const styEl = $('hdCardStyle');
+    const partsEl = $('hdCardPartsList');
+    const hashEl = $('hdCardHash');
+
+    if (nameEl) nameEl.textContent = buildData.car_name || currentTuningCar?.name || 'Vehículo JDM';
+    if (modelEl) modelEl.textContent = buildData.real_model || currentTuningCar?.real_model || '';
+    if (buildNameEl) buildNameEl.textContent = `"${buildData.build_name || 'Custom Build'}"`;
+    if (ownerEl) ownerEl.textContent = `Propietario: @${profile.username || 'driver'}`;
+
+    if (hpEl) hpEl.textContent = stats.hp || '-';
+    if (accEl) accEl.textContent = (stats.acceleration_0_100 ? stats.acceleration_0_100.toFixed(1) : '-') + 's';
+    if (hanEl) hanEl.textContent = stats.handling || '-';
+    if (styEl) styEl.textContent = stats.style_points || 0;
+
+    if (partsEl) {
+      partsEl.innerHTML = `
+        <div>🛞 <b>Llantas:</b> ${parts.wheels || 'De serie'}</div>
+        <div>🎨 <b>Pintura:</b> ${parts.paint || 'De serie'}</div>
+        <div>🏎️ <b>Alerón:</b> ${parts.spoiler || 'De serie'}</div>
+        <div>💨 <b>Escape:</b> ${parts.exhaust || 'De serie'}</div>
+        <div>📐 <b>Carrocería:</b> ${parts.body_kit || 'De serie'}</div>
+      `;
+    }
+
+    if (hashEl) {
+      hashEl.textContent = `RENDER KEY: ${renderJob?.render_key || 'DETERMINISTIC-KEY-v1.0.0'} · PATH: ${renderJob?.storage_path || 'build-renders/...'}`;
+    }
+
+    modal.classList.add('open');
+  };
+
+  window.closeCarCardModal = function() {
+    const modal = $('carCardModal');
+    if (modal) modal.classList.remove('open');
   };
 
   window.handleDeleteBuildClick = async function(buildId) {

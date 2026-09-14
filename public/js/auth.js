@@ -417,6 +417,39 @@
     },
 
     /**
+     * Solicita o recupera un render determinista de un snapshot inmutable
+     */
+    async requestBuildRender(snapshotId, provider = 'mock', version = '1.0.0') {
+      if (!this.isAuthenticated()) throw new Error('Debes iniciar sesión.');
+      return restFetch('rpc/request_build_render_atomic', {
+        method: 'POST',
+        body: JSON.stringify({
+          p_snapshot_id: snapshotId,
+          p_provider: provider,
+          p_version: version
+        })
+      });
+    },
+
+    /**
+     * Obtiene los snapshots inmutables guardados por el usuario
+     */
+    async getUserSnapshots() {
+      if (!this.isAuthenticated()) return [];
+      const userId = this.getUser().id;
+      return restFetch(`build_snapshots?user_id=eq.${userId}&select=*&order=created_at.desc`);
+    },
+
+    /**
+     * Obtiene los render jobs del usuario
+     */
+    async getUserRenderJobs() {
+      if (!this.isAuthenticated()) return [];
+      const userId = this.getUser().id;
+      return restFetch(`render_jobs?user_id=eq.${userId}&select=*&order=created_at.desc`);
+    },
+
+    /**
      * Elimina un build propio
      */
     async deleteBuild(buildId) {

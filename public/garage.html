@@ -967,6 +967,48 @@
   </div>
 </div>
 
+<!-- ================= MODAL CAR CARD HD ================= -->
+<div class="modal-overlay" id="carCardModal">
+  <div class="modal-box" style="max-width: 480px; border: 2px solid rgba(255, 215, 0, 0.4); background: linear-gradient(145deg, #181508, #0F0F0F);">
+    <button class="modal-close" onclick="closeCarCardModal()" aria-label="Cerrar modal">&times;</button>
+    <div style="font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 0.1em; margin-bottom: 4px;" id="hdCardHeader">SSCARS PHYgital CARD HD</div>
+    <h3 style="font-size: 22px; font-weight: 900; margin-bottom: 2px;" id="hdCardCarName">El Emperador Azul</h3>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;" id="hdCardModel">Nissan Skyline GT-R R34 (1999)</p>
+
+    <!-- Blueprint Visual Preview -->
+    <div style="background: #000; border: 1px solid #333; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 16px;">
+      <div style="font-size: 10px; color: #55FF55; font-family: monospace; text-align: left; margin-bottom: 8px;">[RENDER ARTIFACT DETERMINISTA: v1.0.0]</div>
+      <div id="hdCardThumb" style="width: 100%; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #0A0A0A; border-radius: 8px; margin-bottom: 10px;">
+        <span style="font-size: 40px;">🏎️</span>
+      </div>
+      <div style="font-size: 14px; font-weight: 800; color: #FFF;" id="hdCardBuildName">"Wangan Midnight Beast"</div>
+      <div style="font-size: 11px; color: #888;" id="hdCardOwner">Propietario: @driver</div>
+    </div>
+
+    <!-- Frozen Snapshot Stats -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: #141414; padding: 10px; border-radius: 8px; font-size: 11px; margin-bottom: 16px; text-align: center;">
+      <div><span style="color: var(--text-muted);">HP</span><div style="font-weight: 800; font-size: 14px;" id="hdCardHp">339</div></div>
+      <div><span style="color: var(--text-muted);">0-100</span><div style="font-weight: 800; font-size: 14px;" id="hdCardAccel">4.7s</div></div>
+      <div><span style="color: var(--text-muted);">Manejo</span><div style="font-weight: 800; font-size: 14px;" id="hdCardHandling">96</div></div>
+      <div><span style="color: var(--text-muted);">Estilo</span><div style="font-weight: 800; font-size: 14px; color: #FF9900;" id="hdCardStyle">12</div></div>
+    </div>
+
+    <!-- Equipped Parts Breakdown -->
+    <div style="background: #111; padding: 12px; border-radius: 8px; font-size: 12px; margin-bottom: 16px;">
+      <div style="font-size: 11px; font-weight: 800; color: #AAA; margin-bottom: 6px;">PIEZAS DEL SNAPSHOT:</div>
+      <div id="hdCardPartsList" style="color: #DDD; line-height: 1.6;">
+        <!-- Llantas, Pintura, Alerón, Escape, Kit -->
+      </div>
+    </div>
+
+    <div style="font-size: 10px; color: #555; word-break: break-all; margin-bottom: 14px;" id="hdCardHash">
+      HASH: md5(...)
+    </div>
+
+    <button class="btn-submit" onclick="closeCarCardModal()" style="width: 100%;">Cerrar Car Card</button>
+  </div>
+</div>
+
 <!-- Scripts -->
 <script src="js/supabase-config.js"></script>
 <script src="js/auth.js"></script>

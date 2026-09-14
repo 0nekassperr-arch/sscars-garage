@@ -135,6 +135,32 @@ export async function createBuildSnapshotAtomic({ buildId, userToken = null }) {
 }
 
 /**
+ * Solicita o recupera un render determinista de un snapshot inmutable
+ */
+export async function requestBuildRenderAtomic({ snapshotId, provider = 'mock', version = '1.0.0', userToken = null }) {
+  const headers = userToken ? { Authorization: `Bearer ${userToken}` } : {};
+  return rpc('request_build_render_atomic', {
+    p_snapshot_id: snapshotId,
+    p_provider: provider,
+    p_version: version
+  }, { useServiceRole: !userToken, headers });
+}
+
+/**
+ * Obtiene los snapshots inmutables del usuario
+ */
+export async function getUserSnapshots(userId, userToken = null) {
+  if (!userId) return [];
+  const headers = userToken ? { Authorization: `Bearer ${userToken}` } : {};
+  const res = await postgrestRequest(`build_snapshots?user_id=eq.${userId}&select=*&order=created_at.desc`, {
+    method: 'GET',
+    useServiceRole: !userToken,
+    headers
+  });
+  return res.ok ? res.data : [];
+}
+
+/**
  * Elimina un build propio
  */
 export async function deleteBuildAtomic({ buildId, userToken = null }) {
