@@ -7,3 +7,16 @@ __pycache__/
 
 # Prototipo (maqueta local, no se despliega)
 produccion/prototipo/images/
+
+# 3D Asset Pipeline Local Outputs & Large Binaries (Fuera de Git)
+assets_raw/
+assets_master/
+assets_web/
+assets_print/
+assets_qa/
+*.blend
+*.blend1
+*.stl
+*.3mf
+*.glb
+!produccion/blender/r34_chibi.glb

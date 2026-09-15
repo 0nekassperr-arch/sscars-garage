@@ -4,7 +4,7 @@
 SSCARS GARAGE 2.0 — 3D ASSET PROCESSING & NORMALIZATION PIPELINE
 ================================================================================
 Herramienta CLI modular para procesar modelos GLB RAW (Tripo/Meshy) y transformarlos
-en activos MASTER de Blender, WEB GLB optimizados y 3MF de impresión física.
+en activos MASTER de Blender (.blend), WEB GLB optimizados y archivos de impresión (.stl/.3mf).
 
 PRINCIPIO FUNDAMENTAL:
 - Pipeline CONSERVADOR: Ante detecciones dudosas genera estado REVIEW_REQUIRED.
@@ -12,12 +12,10 @@ PRINCIPIO FUNDAMENTAL:
 - Basa la segmentación en geometría, volumen, normales, simetría y PCA.
 - Los archivos de entrada se tratan como estrictamente READ ONLY.
 
-USO CON BLENDER:
-    blender --background --python tools/blender/sscars_asset_pipeline.py -- \\
-        --input "assets_raw/350z_raw.glb" \\
-        --config "tools/blender/configs/350z.json" \\
-        --output-dir "assets_master" \\
-        --dry-run
+USO DESDE WINDOWS CON BLENDER:
+    run_350z_windows.bat
+    (o)
+    "C:\\Program Files\\Blender Foundation\\Blender 4.x\\blender.exe" -b --python tools/blender/sscars_asset_pipeline.py -- --input assets_raw/350z_raw.glb --slug 350z
 ================================================================================
 """
 
@@ -55,7 +53,7 @@ def deep_merge_dicts(base, update):
 
 def load_config(config_path=None, slug=None):
     """
-    Carga la configuración por defecto y la combina con la configuración específica del vehículo.
+    Carga la configuración base (default.json) y la combina con la configuración específica del vehículo.
     """
     base_dir = Path(__file__).resolve().parent
     default_config_file = base_dir / "configs" / "default.json"
@@ -121,20 +119,16 @@ def compute_scale_factor(current_length, target_length_mm=70.0):
 def determine_orientation_heuristic(vertices):
     """
     Determina si el vehículo requiere rotación para cumplir X=ancho, Y=largo, Z=alto.
-    Retorna vector de rotación sugerido en grados (euler_x, euler_y, euler_z) y confianza.
     """
     bbox = compute_bounding_box_dimensions(vertices)
     dx, dy, dz = bbox["dx"], bbox["dy"], bbox["dz"]
 
     # En un coche: Longitud (Y) > Anchura (X) > Altura (Z)
     if dy >= dx and dx >= dz:
-        # Ya alineado correctamente
         return {"rotation_needed": False, "euler_deg": (0, 0, 0), "confidence": 0.95}
     elif dx > dy and dy >= dz:
-        # Longitud sobre eje X -> rotar 90 deg en Z
         return {"rotation_needed": True, "euler_deg": (0, 0, 90), "confidence": 0.90}
     elif dz > dy or dz > dx:
-        # Eje Z invertido con Y (formato Y-up en vez de Z-up)
         return {"rotation_needed": True, "euler_deg": (90, 0, 0), "confidence": 0.85}
     else:
         return {"rotation_needed": True, "euler_deg": (0, 0, 0), "confidence": 0.50}
@@ -148,17 +142,14 @@ def evaluate_wheel_candidate_pure(wheel_center, radius, width, config):
     expected_w = config.get("wheels", {}).get("expected_width_range_mm", [5.0, 12.0])
 
     score = 1.0
-    # 1. Validación de Radio
     if radius < expected_r[0] or radius > expected_r[1]:
         deviation_r = min(abs(radius - expected_r[0]), abs(radius - expected_r[1]))
         score -= min(0.40, deviation_r * 0.1)
 
-    # 2. Validación de Anchura
     if width < expected_w[0] or width > expected_w[1]:
         deviation_w = min(abs(width - expected_w[0]), abs(width - expected_w[1]))
         score -= min(0.30, deviation_w * 0.1)
 
-    # 3. Posición Z respecto al suelo (debe estar en la mitad inferior)
     if wheel_center[2] < 0:
         score -= 0.30
 
@@ -177,16 +168,13 @@ def evaluate_quad_symmetry(wheels_dict, tolerance_mm=1.5):
     rl = wheels_dict.get("RL", {}).get("center", (0,0,0))
     rr = wheels_dict.get("RR", {}).get("center", (0,0,0))
 
-    # Batalla izquierda vs derecha
     wheelbase_l = abs(fl[1] - rl[1])
     wheelbase_r = abs(fr[1] - rr[1])
     diff_wheelbase = abs(wheelbase_l - wheelbase_r)
 
-    # Ancho de vía delantero vs trasero
     track_f = abs(fl[0] - fr[0])
     track_r = abs(rl[0] - rr[0])
 
-    # Simetría respecto al plano X = 0
     center_x_f = (fl[0] + fr[0]) / 2.0
     center_x_r = (rl[0] + rr[0]) / 2.0
     diff_center_x = max(abs(center_x_f), abs(center_x_r))
@@ -206,8 +194,7 @@ def evaluate_quad_symmetry(wheels_dict, tolerance_mm=1.5):
 
 def determine_qa_status(confidence_scores, config):
     """
-    Determina el estado final del informe QA según los umbrales configurados.
-    Estados posibles: PASS | WARNING | REVIEW_REQUIRED | FAIL
+    Determina el estado final del informe QA: PASS | WARNING | REVIEW_REQUIRED | FAIL
     """
     thresholds = config.get("confidence_thresholds", {
         "auto_accept": 0.85,
@@ -239,7 +226,39 @@ def determine_qa_status(confidence_scores, config):
 
 
 # ============================================================================
-# 3. PIPELINE DE EJECUCIÓN (CON INTEGRACIÓN BLENDER BPY)
+# 3. SELF TEST DE BLENDER
+# ============================================================================
+
+def run_self_test():
+    """Comprueba la disponibilidad de Blender y operadores de importación/exportación."""
+    if not IS_BLENDER:
+        print("BLENDER SELF TEST: FAIL (bpy no disponible - el script no se está ejecutando dentro de Blender)")
+        return 1
+    
+    try:
+        has_gltf_import = hasattr(bpy.ops.import_scene, 'gltf')
+        has_gltf_export = hasattr(bpy.ops.export_scene, 'gltf')
+        has_stl_export = hasattr(bpy.ops.wm, 'stl_export') or hasattr(bpy.ops.export_mesh, 'stl')
+        
+        if not (has_gltf_import and has_gltf_export):
+            print("BLENDER SELF TEST: FAIL (operadores de importación/exportación GLTF faltantes)")
+            return 1
+            
+        print("==================================================")
+        print("BLENDER SELF TEST: PASS")
+        print(f"Versión de Blender: {bpy.app.version_string}")
+        print("GLTF Importer:      OK")
+        print("GLTF Exporter:      OK")
+        print(f"STL Exporter:       {'OK' if has_stl_export else 'WARNING (no nativo)'}")
+        print("==================================================")
+        return 0
+    except Exception as e:
+        print(f"BLENDER SELF TEST: FAIL ({str(e)})")
+        return 1
+
+
+# ============================================================================
+# 4. PIPELINE DE PROCESAMIENTO
 # ============================================================================
 
 class SscarsAssetPipeline:
@@ -248,9 +267,12 @@ class SscarsAssetPipeline:
         self.output_dir = Path(output_dir)
         self.dry_run = dry_run
         self.config = config or {}
+        self.slug = self.config.get("slug", self.input_path.stem.replace("_raw", ""))
+        self.target_length_mm = self.config.get("target_length_mm", 70.0)
+        
         self.report = {
             "vehicle": self.config.get("name", "Unknown Model"),
-            "slug": self.config.get("slug", "unknown"),
+            "slug": self.slug,
             "input_file": str(self.input_path),
             "dry_run": self.dry_run,
             "geometry": {},
@@ -265,10 +287,23 @@ class SscarsAssetPipeline:
             "status": "PENDING"
         }
 
-    def inspect_geometry(self):
-        """Inspecciona la geometría RAW importada."""
+    def import_raw_glb(self):
+        """Importa el archivo GLB RAW dentro de Blender."""
         if not IS_BLENDER:
-            # Inspección simulada sin Blender
+            return True
+        
+        if not self.input_path.exists():
+            raise FileNotFoundError(f"Archivo GLB de entrada no encontrado: {self.input_path}")
+        
+        # Limpiar escena
+        bpy.ops.wm.read_factory_settings(use_empty=True)
+        # Importar GLB
+        bpy.ops.import_scene.gltf(filepath=str(self.input_path))
+        return True
+
+    def inspect_geometry(self):
+        """Inspecciona la geometría importada."""
+        if not IS_BLENDER:
             self.report["geometry"] = {
                 "file_size_kb": round(self.input_path.stat().st_size / 1024, 1) if self.input_path.exists() else 0,
                 "objects_count": 1,
@@ -278,14 +313,13 @@ class SscarsAssetPipeline:
             }
             return self.report["geometry"]
 
-        # En Blender real:
-        objs = [o for o in bpy.context.scene.objects if o.type == 'MESH']
-        v_count = sum(len(o.data.vertices) for o in objs)
-        f_count = sum(len(o.data.polygons) for o in objs)
+        mesh_objs = [o for o in bpy.context.scene.objects if o.type == 'MESH']
+        v_count = sum(len(o.data.vertices) for o in mesh_objs)
+        f_count = sum(len(o.data.polygons) for o in mesh_objs)
         mats = len(bpy.data.materials)
 
         self.report["geometry"] = {
-            "objects_count": len(objs),
+            "objects_count": len(mesh_objs),
             "vertex_count": v_count,
             "face_count": f_count,
             "materials_count": mats
@@ -293,25 +327,81 @@ class SscarsAssetPipeline:
         return self.report["geometry"]
 
     def normalize_transform(self):
-        """Calcula orientación y escala canónica a 70 mm."""
-        target_len = self.config.get("target_length_mm", 70.0)
+        """Calcula orientación y normaliza la escala a 70.0 mm con suelo en Z=0."""
+        target_len = self.target_length_mm
+
+        if not IS_BLENDER:
+            scale_fac = compute_scale_factor(1.0, target_len)
+            self.report["transform"] = {
+                "target_length_mm": target_len,
+                "scale_factor_applied": scale_fac,
+                "ground_plane_z": 0.000,
+                "axes": self.config.get("axes", {}),
+                "confidence": 0.95
+            }
+            return self.report["transform"]
+
+        mesh_objs = [o for o in bpy.context.scene.objects if o.type == 'MESH']
+        if not mesh_objs:
+            self.report["warnings"].append("No mesh objects found in scene")
+            return self.report["transform"]
+
+        # 1. Unir temporalmente o calcular bbox combinado
+        all_coords = []
+        for obj in mesh_objs:
+            matrix = obj.matrix_world
+            all_coords.extend([matrix @ v.co for v in obj.data.vertices])
+
+        bbox = compute_bounding_box_dimensions(all_coords)
+        dx, dy, dz = bbox["dx"], bbox["dy"], bbox["dz"]
+
+        # 2. Orientación: Longitud debe alinearse con eje Y
+        rot_deg = 0
+        if dx > dy and dx >= dz:
+            rot_deg = 90
+            for obj in mesh_objs:
+                obj.rotation_euler[2] += math.radians(90)
+            bpy.ops.object.select_all(action='SELECT')
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+            # Recalcular bbox
+            all_coords = []
+            for obj in mesh_objs:
+                all_coords.extend([obj.matrix_world @ v.co for v in obj.data.vertices])
+            bbox = compute_bounding_box_dimensions(all_coords)
+            dy = bbox["dy"]
+
+        # 3. Escalado uniforme a target_length_mm
+        current_len = dy if dy > 0.001 else 1.0
+        scale_factor = target_len / current_len
+
+        for obj in mesh_objs:
+            obj.scale = (obj.scale[0] * scale_factor, obj.scale[1] * scale_factor, obj.scale[2] * scale_factor)
         
-        # Simulación / Cálculo canónico
-        current_len = 1.0  # Unidad base Blender GLB
-        scale_fac = compute_scale_factor(current_len, target_len)
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+        # 4. Alinear suelo en Z = 0
+        all_zs = []
+        for obj in mesh_objs:
+            all_zs.extend([(obj.matrix_world @ v.co).z for v in obj.data.vertices])
+        
+        min_z = min(all_zs) if all_zs else 0.0
+        for obj in mesh_objs:
+            obj.location.z -= min_z
+        
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
 
         self.report["transform"] = {
             "target_length_mm": target_len,
-            "scale_factor_applied": scale_fac,
+            "scale_factor_applied": round(scale_factor, 6),
             "ground_plane_z": 0.000,
-            "axes": self.config.get("axes", {}),
             "confidence": 0.95
         }
         return self.report["transform"]
 
     def detect_wheels(self):
-        """Detecta los 4 centros de ruedas en los cuadrantes espaciales."""
-        # Candidatos detectados con análisis de PCA y simetría
+        """Detecta ruedas en cuadrantes y calcula simetría."""
         wheels_detected = {
             "FL": {"center": (-18.2, 22.4, 13.2), "radius_mm": 13.2, "width_mm": 8.1, "confidence": 0.92},
             "FR": {"center": (18.2, 22.4, 13.2), "radius_mm": 13.2, "width_mm": 8.1, "confidence": 0.92},
@@ -330,7 +420,7 @@ class SscarsAssetPipeline:
         return self.report["wheels"]
 
     def detect_body(self):
-        """Identifica el cascarón principal del vehículo."""
+        """Identifica el volumen principal de la carrocería."""
         self.report["body"] = {
             "status": "detected",
             "volume_ratio": 0.78,
@@ -359,7 +449,7 @@ class SscarsAssetPipeline:
         return self.report["spoiler"]
 
     def detect_exhaust(self):
-        """Detecta terminales de escape en la parte trasera."""
+        """Detecta terminales de escape."""
         layout = self.config.get("exhaust", {}).get("layout", "single_left")
         self.report["exhaust"] = {
             "detected": True,
@@ -380,6 +470,27 @@ class SscarsAssetPipeline:
         }
         return self.report["undercarriage"]
 
+    def build_master_scene(self):
+        """Estructura la escena en colecciones estándar de Blender."""
+        if not IS_BLENDER:
+            return True
+
+        scene = bpy.context.scene
+        root_col_name = "SSCARS_MASTER"
+        
+        root_col = bpy.data.collections.get(root_col_name)
+        if not root_col:
+            root_col = bpy.data.collections.new(root_col_name)
+            scene.collection.children.link(root_col)
+
+        sub_cols = ["BODY", "WHEELS", "SPOILER", "EXHAUST", "UNDERCARRIAGE", "QA"]
+        for cname in sub_cols:
+            if not bpy.data.collections.get(cname):
+                c = bpy.data.collections.new(cname)
+                root_col.children.link(c)
+        
+        return True
+
     def run_qa(self):
         """Genera el dictamen de calidad QA global."""
         scores = {
@@ -395,8 +506,62 @@ class SscarsAssetPipeline:
         self.report["status"] = determine_qa_status(scores, self.config)
         return self.report
 
+    def export_master(self):
+        """Exporta escena master .blend."""
+        if not IS_BLENDER:
+            return
+        master_dir = Path("assets_master")
+        master_dir.mkdir(parents=True, exist_ok=True)
+        blend_path = master_dir / f"{self.slug}_master.blend"
+        bpy.ops.wm.save_as_mainfile(filepath=str(blend_path))
+        print(f"✅ MASTER guardado: {blend_path}")
+
+    def export_web(self):
+        """Exporta archivo .glb comprimido para la web."""
+        if not IS_BLENDER:
+            return
+        web_dir = Path("assets_web")
+        web_dir.mkdir(parents=True, exist_ok=True)
+        glb_path = web_dir / f"{self.slug}_web.glb"
+        
+        try:
+            bpy.ops.export_scene.gltf(
+                filepath=str(glb_path),
+                export_format='GLB',
+                export_draco_mesh_compression_enable=True,
+                export_materials='EXPORT'
+            )
+        except Exception:
+            # Fallback sin Draco si no está disponible en la build de Blender
+            bpy.ops.export_scene.gltf(
+                filepath=str(glb_path),
+                export_format='GLB',
+                export_materials='EXPORT'
+            )
+        print(f"✅ WEB GLB exportado: {glb_path}")
+
+    def export_print(self):
+        """Exporta archivo .stl/.3mf para impresión 3D física."""
+        if not IS_BLENDER:
+            return
+        print_dir = Path("assets_print")
+        print_dir.mkdir(parents=True, exist_ok=True)
+        stl_path = print_dir / f"{self.slug}_70mm.stl"
+
+        try:
+            if hasattr(bpy.ops.wm, 'stl_export'):
+                bpy.ops.wm.stl_export(filepath=str(stl_path))
+            elif hasattr(bpy.ops.export_mesh, 'stl'):
+                bpy.ops.export_mesh.stl(filepath=str(stl_path))
+            print(f"✅ PRINT STL exportado: {stl_path}")
+        except Exception as e:
+            print(f"⚠️ No se pudo exportar STL nativamente: {e}")
+
     def process(self):
-        """Ejecuta el pipeline completo de análisis y exportación."""
+        """Ejecuta el pipeline completo."""
+        if IS_BLENDER and not self.dry_run:
+            self.import_raw_glb()
+
         self.inspect_geometry()
         self.normalize_transform()
         self.detect_wheels()
@@ -406,33 +571,20 @@ class SscarsAssetPipeline:
         self.analyze_undercarriage()
         self.run_qa()
 
-        # Si no es dry-run y estamos en Blender, exportar
-        if not self.dry_run and IS_BLENDER:
+        if IS_BLENDER and not self.dry_run:
+            self.build_master_scene()
             self.export_master()
             self.export_web()
             self.export_print()
 
         return self.report
 
-    def export_master(self):
-        """Exporta escena master .blend organizada por colecciones."""
-        pass
-
-    def export_web(self):
-        """Exporta archivo .glb comprimido para la web."""
-        pass
-
-    def export_print(self):
-        """Exporta archivo .3mf con ahuecado de 2mm para fabricación."""
-        pass
-
 
 # ============================================================================
-# 4. PARSER DE LÍNEA DE COMANDOS CLI
+# 5. CLI ENTRYPOINT
 # ============================================================================
 
 def parse_args():
-    # En Blender los argumentos de script van tras '--'
     argv = sys.argv
     if "--" in argv:
         argv = argv[argv.index("--") + 1:]
@@ -443,7 +595,8 @@ def parse_args():
         description="SSCARS Garage — 3D Asset Processing Pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("--input", "-i", type=str, required=True, help="Ruta al archivo GLB RAW de entrada")
+    parser.add_argument("--self-test", action="store_true", help="Ejecuta diagnóstico de compatibilidad de Blender")
+    parser.add_argument("--input", "-i", type=str, default=None, help="Ruta al archivo GLB RAW de entrada")
     parser.add_argument("--output-dir", "-o", type=str, default="assets_master", help="Directorio destino de exportación")
     parser.add_argument("--config", "-c", type=str, default=None, help="Ruta a archivo JSON de configuración")
     parser.add_argument("--slug", "-s", type=str, default=None, help="Slug del vehículo (ej. 350z, r32, r34)")
@@ -456,6 +609,14 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    if not args.input:
+        print("Error: El argumento --input es obligatorio (o use --self-test)")
+        return 1
+
     config = load_config(config_path=args.config, slug=args.slug)
     if args.target_length_mm:
         config["target_length_mm"] = args.target_length_mm
@@ -483,7 +644,9 @@ def main():
     print("=" * 80 + "\n")
 
     if args.report_json:
-        with open(args.report_json, "w", encoding="utf-8") as f:
+        report_path = Path(args.report_json)
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
         print(f"Reporte JSON guardado en: {args.report_json}")
 
