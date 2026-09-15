@@ -1,9 +1,9 @@
 # 🏛️ ARQUITECTURA DEL SISTEMA — SSCARS GARAGE 2.0 (V2)
 
 > **Documento:** Especificación Técnica y Arquitectura del Sistema  
-> **Versión:** 2.4.0-BUILD-RENDER-CAR-CARD-HD  
+> **Versión:** 2.5.0-3D-ASSET-PIPELINE-BLENDER  
 > **Fecha:** 2026-09-14  
-> **Estado:** Fase 5 (Build Render Pipeline + MockRenderer + Car Card HD) Completada y Testeada
+> **Estado:** Fase 5.2B-1 (Pipeline de Assets 3D en Blender CLI + Configuraciones Modulares) Completada y Testeada
 
 ---
 
@@ -11,20 +11,19 @@
 
 1. [Resumen Ejecutivo y Estado de Fases](#1-resumen-ejecutivo-y-estado-de-fases)
 2. [Diferenciación de Entidades Fundamentales](#2-diferenciación-de-entidades-fundamentales)
-3. [Pipeline de Renderizado Desacoplado](#3-pipeline-de-renderizado-desacoplado)
-4. [Tabla render_jobs, Idempotencia y Concurrencia](#4-tabla-render_jobs-idempotencia-y-concurrencia)
-5. [Adaptador RendererAdapter y MockRenderer Determinista](#5-adaptador-rendereradapter-y-mockrenderer)
-6. [Seguridad y Privacidad de Storage (build-renders)](#6-seguridad-y-privacidad-de-storage)
-7. [Car Card HD: Estructura y Vínculo con Snapshots](#7-car-card-hd-estructura-y-vínculo-con-snapshots)
-8. [Futuro Renderer Real (Puntos de Conexión)](#8-futuro-renderer-real)
-9. [Esquema de Base de Datos y Migraciones Versionadas](#9-esquema-de-base-de-datos-y-migraciones-versionadas)
-10. [Funcionalidades Deliberadamente Pospuestas](#10-funcionalidades-deliberadamente-pospuestas)
+3. [Pipeline 3D de Procesamiento y Normalización (`tools/blender/`)](#3-pipeline-3d-de-procesamiento-y-normalización)
+4. [Estrategia de Segmentación y Detección Geométrica](#4-estrategia-de-segmentación-y-detección-geométrica)
+5. [Sistema de Configuración Modular (`configs/*.json`)](#5-sistema-de-configuración-modular)
+6. [QA Automatizado y Filosofía Conservadora (`REVIEW_REQUIRED`)](#6-qa-automatizado-y-filosofía-conservadora)
+7. [Storage, Renders y Aislamiento de Archivos Pesados](#7-storage-renders-y-aislamiento-de-archivos-pesados)
+8. [Esquema de Base de Datos y Migraciones Versionadas](#8-esquema-de-base-de-datos-y-migraciones-versionadas)
+9. [Funcionalidades Deliberadamente Pospuestas](#9-funcionalidades-deliberadamente-pospuestas)
 
 ---
 
 ## 1. RESUMEN EJECUTIVO Y ESTADO DE FASES
 
-SSCARS Garage 2.0 establece un pipeline desacoplado para transformar configuraciones de garaje congeladas en activos visuales de alta definición (Car Card HD).
+SSCARS Garage 2.0 une el coleccionismo físico y virtual mediante una arquitectura de datos sólida y un pipeline de procesamiento 3D determinista.
 
 ### Estado Actual de Fases:
 - **✅ FASE 1 (Foundation):** Esquema relacional en Supabase PostgreSQL, Storage, catálogo base y Gold inventory (100 unidades).
@@ -32,141 +31,96 @@ SSCARS Garage 2.0 establece un pipeline desacoplado para transformar configuraci
 - **✅ FASE 2 & 2.1 (Auth + Garage + Colección):** GoTrue Auth, álbum digital de 15 cartas JDM y RLS estricto por usuario.
 - **✅ FASE 3 (Daily Reward + Digital Cards + XP):** Motor atómico de Daily Drop en `Europe/Madrid`, política anti-duplicados y ledger de XP idempotente.
 - **✅ FASE 4 (Tuning + Builds + Snapshots):** Catálogo de piezas de tuning en 5 categorías, ownership verificado, cálculo server-side y snapshots inmutables.
-- **✅ FASE 5 (Build Render + Car Card HD):**
-  - Pipeline de renderizado desacoplado basado en `build_snapshots` inmutables.
-  - Tabla `public.render_jobs` con control de estados (`pending`, `processing`, `completed`, `failed`).
-  - Generación de `render_key` determinista (hash MD5/SHA-256).
-  - Storage bucket `build-renders` privado con aislamiento estricto por usuario (`build-renders/${userId}/${snapshotId}/${version}/render.png`).
-  - Adaptador `RendererAdapter` y mock funcional `MockRenderer`.
-  - Visualización de Car Card HD personalizada en `/garage.html`.
+- **✅ FASE 5 (Build Render + Car Card HD):** Pipeline de renderizado desacoplado, `render_jobs` y `MockRenderer`.
+- **✅ FASE 5.2B-0 (Organización de Referencias Visuales):** 15 vehículos organizados en `produccion/referencias/{slug}/` con READMEs individuales e índice global maestro.
+- **✅ FASE 5.2B-1 (Pipeline de Assets 3D en Blender CLI):**
+  - Implementación de `tools/blender/sscars_asset_pipeline.py`.
+  - Sistema de configuración modular en `tools/blender/configs/` (`default.json`, `350z.json`, `r32.json`, `r34.json`).
+  - Detección de ruedas basada en RANSAC cilíndrico y simetría bilateral sin depender de nombres de Tripo.
+  - Saneamiento y detección de cierres artificiales en los bajos.
+  - Generador de informes QA estructurados en JSON con cálculo de confianza.
+  - Modo seguro `--dry-run`.
 
 ---
 
 ## 2. DIFERENCIACIÓN DE ENTIDADES FUNDAMENTALES
 
-Para evitar confusiones en la arquitectura de datos:
+$$\text{BUILD} \neq \text{SNAPSHOT} \neq \text{RENDER} \neq \text{CAR CARD} \neq \text{3D MASTER}$$
 
-$$\text{BUILD} \neq \text{SNAPSHOT} \neq \text{RENDER} \neq \text{CAR CARD}$$
-
-```
-┌───────────────────────────┐
-│       1. BUILD            │ ──► Configuración viva y mutable en el garaje del usuario (public.builds).
-└─────────────┬─────────────┘
-              │ Congelación explícita
-              ▼
-┌───────────────────────────┐
-│     2. BUILD SNAPSHOT     │ ──► Fotografía inmutable histórica (public.build_snapshots). No cambia jamás.
-└─────────────┬─────────────┘
-              │ Solicitud de render
-              ▼
-┌───────────────────────────┐
-│       3. RENDER           │ ──► Trabajo y artefacto de imagen generado (public.render_jobs + Storage).
-└─────────────┬─────────────┘
-              │ Composición Phygital
-              ▼
-┌───────────────────────────┐
-│     4. CAR CARD HD        │ ──► Carta coleccionable personalizada que une Coche + Snapshot + Render + Stats.
-└───────────────────────────┘
-```
+1. **BUILD:** Configuración viva en el garaje (`public.builds`).
+2. **BUILD SNAPSHOT:** Copia canónica inmutable (`public.build_snapshots`).
+3. **RENDER:** Trabajo y resultado de imagen 2D/3D (`public.render_jobs`).
+4. **CAR CARD HD:** Carta coleccionable Phygital para vitrina web.
+5. **3D MASTER:** Escena de Blender (`.blend`) multi-cuerpo que alimenta tanto al render como a la fabricación aditiva.
 
 ---
 
-## 3. PIPELINE DE RENDERIZADO DESACOPLADO
-
-El renderer **nunca consulta la tabla `builds` actual**. Su única fuente de verdad es el **`build_snapshot`** inmutable:
+## 3. PIPELINE 3D DE PROCESAMIENTO Y NORMALIZACIÓN
 
 ```
-[USUARIO / GARAGE]
-       │
-       ▼ RPC: request_build_render_atomic(snapshot_id, provider, version)
-[POSTGRESQL]
-       ├── 1. Valida ownership (snapshot.user_id = auth.uid())
-       ├── 2. Calcula render_key determinista = hash(snapshot_id, version, build_data)
-       ├── 3. Comprueba idempotencia en `render_jobs` (retorna caché si ya existe)
-       └── 4. Crea registro de trabajo (`render_jobs`) con storage_path seguro
-              │
-              ▼
-[RENDERER ADAPTER] (api/render/adapter.js)
-       ├── MockRenderer (Fase 5 actual: determinista, 0 costes de API)
-       └── Future Renderer (Fase posterior: 3D Canvas / Worker / AI)
-              │
-              ▼
-[SUPABASE STORAGE] (build-renders/${user_id}/${snapshot_id}/${version}/render.png)
+[ PC LOCAL DEL USUARIO / TALLER 3D ] (Fuera de Git)
+  assets_raw/{slug}_raw.glb (Descarga de Tripo3D / Meshy)
+        │
+        ▼ tools/blender/sscars_asset_pipeline.py
+  ┌─────────────────────────────────────────────────────────┐
+  │ 1. Ingesta y Validación de Integridad                   │
+  │ 2. Normalización de Orientación (+Y: Frontal, +Z: Arriba)│
+  │ 3. Escalado Canónico a 70.0 mm                          │
+  │ 4. Calibración de Suelo (Z = 0.000 mm)                  │
+  │ 5. Detección Cilíndrica de Ruedas (FL, FR, RL, RR)      │
+  │ 6. Aislamiento de Carrocería, Alerón y Escape           │
+  │ 7. Saneamiento de Bajos y Generación de Chasis          │
+  │ 8. Auditoría QA JSON (PASS / REVIEW_REQUIRED)           │
+  └────────────────────────────┬────────────────────────────┘
+                               │
+                               ▼
+  assets_master/{slug}_master.blend (Jerarquía Multi-cuerpo)
+        ├───────────────────────────────┬───────────────────────────────┐
+        ▼                               ▼                               ▼
+  assets_web/{slug}_web.glb      Car Card HD Render           assets_print/{slug}_70mm.3mf
+(Draco comprimido < 1.5 MB)      (Render Adapter)              (Ahuecado 2mm / Bambu AMS)
 ```
 
 ---
 
-## 4. TABLA `render_jobs`, IDEMPOTENCIA Y CONCURRENCIA
+## 4. ESTRATEGIA DE SEGMENTACIÓN Y DETECCIÓN GEOMÉTRICA
 
-Definida en la migración `011_render_jobs_and_storage_privacy.sql`:
-
-```sql
-CREATE TABLE public.render_jobs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    snapshot_id UUID REFERENCES public.build_snapshots(id) ON DELETE CASCADE NOT NULL,
-    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-    status VARCHAR(32) DEFAULT 'pending' NOT NULL,
-    renderer_provider VARCHAR(64) DEFAULT 'mock' NOT NULL,
-    renderer_version VARCHAR(32) DEFAULT '1.0.0' NOT NULL,
-    render_key VARCHAR(128) NOT NULL,
-    storage_path TEXT NOT NULL,
-    width INTEGER DEFAULT 2048 NOT NULL,
-    height INTEGER DEFAULT 2048 NOT NULL,
-    mime_type VARCHAR(64) DEFAULT 'image/png' NOT NULL,
-    render_metadata JSONB DEFAULT '{}'::jsonb NOT NULL,
-    error_code VARCHAR(64),
-    error_message TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    started_at TIMESTAMPTZ,
-    completed_at TIMESTAMPTZ,
-    CONSTRAINT uq_render_job_idempotency UNIQUE (snapshot_id, renderer_provider, renderer_version, render_key)
-);
-```
-
-- **Idempotencia:** La restricción `UNIQUE (snapshot_id, renderer_provider, renderer_version, render_key)` garantiza que dos solicitudes idénticas reutilicen el trabajo existente sin generar duplicados.
-- **Concurrencia:** Dos llamadas simultáneas son serializadas en PostgreSQL, retornando el mismo job lógico.
+El pipeline **no confía en los nombres de objeto de Tripo** (`tripo_part_0`, etc.):
+1. **Ruedas:** Detección en 4 cuadrantes espaciales mediante ajuste cilíndrico (RANSAC) sobre normales en X ($|\vec{N}_x| > 0.75$) y verificación de simetría bilateral ($|Y_{FL}-Y_{RL}| \approx |Y_{FR}-Y_{RR}|$).
+2. **Carrocería (`BODY`):** Identificación del cascarón central dominante y volumen exterior.
+3. **Alerón (`SPOILER`):** Búsqueda de montantes elevados en el tercio trasero superior ($Y < -0.2 \cdot L, Z > 0.6 \cdot H$).
+4. **Escape (`EXHAUST`):** Búsqueda de cavidades tubulares en los extremos traseros inferiores.
+5. **Bajos (`UNDERCARRIAGE`):** Detección de fondos planos artificiales y cota mínima de suelo ($Z \ge 1.8\text{ mm}$).
 
 ---
 
-## 5. ADAPTADOR `RendererAdapter` Y `MockRenderer`
+## 5. SISTEMA DE CONFIGURACIÓN MODULAR
 
-- **`RendererAdapter` (Clase Base):** Define la interfaz estándar para generar claves de render, rutas de storage y procesar snapshots.
-- **`MockRenderer`:** Implementación determinista que no consume llamadas externas de pago ni modelos 3D pesados. Produce metadatos canónicos de la Car Card HD para validar el flujo completo.
-
----
-
-## 6. SEGURIDAD Y PRIVACIDAD DE STORAGE (`build-renders`)
-
-- **Aislamiento por Usuario:** El bucket `build-renders` es privado (`public = false`).
-- **Política RLS en Storage:**
-  ```sql
-  CREATE POLICY "User Read Own Build Renders" 
-      ON storage.objects FOR SELECT 
-      USING (bucket_id = 'build-renders' AND (auth.uid()::text = (storage.foldername(name))[1]));
-  ```
-- **Rutas Deterministas:** `build-renders/${userId}/${snapshotId}/${version}/render.png`. Las rutas no contienen texto libre del usuario ni caracteres de path traversal (`../`).
+Las configuraciones se combinan mediante herencia recursiva (*deep merge*):
+- **`default.json`:** Tolerancias generales, umbrales y orientación base.
+- **`{slug}.json`:** Ajustes por modelo (p. ej. `350z.json` desactiva búsqueda de alerón alto; `r32.json` configura alerón GT tubular y escape simple a la izquierda).
 
 ---
 
-## 7. CAR CARD HD: ESTRUCTURA Y VÍNCULO CON SNAPSHOTS
+## 6. QA AUTOMATIZADO Y FILOSOFÍA CONSERVADORA
 
-La Car Card HD personalizada reúne:
-1. **Identidad del Coche:** Nombre, modelo real y año (de `cars`).
-2. **Identidad del Propietario:** `@username` (de `profiles`).
-3. **Piezas Equipadas:** Llantas, Pintura, Alerón, Escape y Kit de carrocería (congeladas en `build_snapshots.build_data`).
-4. **Estadísticas Congeladas:** Potencia, 0-100, Manejo y Estilo (de `build_snapshots.stats`).
-5. **Artefacto de Render:** Imagen y render key verificable (de `render_jobs`).
-
----
-
-## 8. FUTURO RENDERER REAL
-
-> 💡 **Punto de Conexión Futuro:**  
-> Cuando se integre el renderizador definitivo, la arquitectura solo requerirá conectar un nuevo adaptador que herede de `RendererAdapter` (p. ej. `ThreeJSRenderer` o `ServerlessCanvasRenderer`). El frontend, la base de datos y los snapshots **no requerirán ninguna modificación estructural**.
+| Estado QA | Criterio de Confianza | Acción |
+|---|---|---|
+| **`PASS`** | Puntuaciones $\ge 0.85$ | Procesa y exporta automáticamente. |
+| **`WARNING`** | Media $\ge 0.85$, algún componente entre $0.60$ y $0.85$ | Exporta con advertencias. |
+| **`REVIEW_REQUIRED`** | Componente $< 0.60$ o geometría fundida | Marca para revisión humana antes de cerrar el master. |
+| **`FAIL`** | Puntuación $< 0.35$ o ruedas asimétricas/ausentes | Aborta el procesamiento. |
 
 ---
 
-## 9. ESQUEMA DE BASE DE DATOS Y MIGRACIONES
+## 7. STORAGE, RENDERS Y AISLAMIENTO DE ARCHIVOS PESADOS
+
+- **Archivos Binarios Pesados:** Permanecen exclusivamente en local en el PC del usuario (`assets_raw/`, `assets_master/`, `assets_print/`) y no se suben a GitHub.
+- **Storage Privado:** El bucket `build-renders` en Supabase es privado y está protegido por RLS por `auth.uid()`.
+
+---
+
+## 8. ESQUEMA DE BASE DE DATOS Y MIGRACIONES
 
 ```
 supabase/migrations/
@@ -185,11 +139,12 @@ supabase/migrations/
 
 ---
 
-## 10. FUNCIONALIDADES DELIBERADAMENTE POSPUESTAS
+## 9. FUNCIONALIDADES DELIBERADAMENTE POSPUESTAS
 
-1. **Fase 6:** Adaptador de Printful y despacho segregado de la **SSCARS Gift Box**.
-2. **Fase 7:** Integración de compra física de builds en Stripe Checkout V2 con doble escritura.
-3. **Fase 8:** Renderizador 3D/IA definitivo de producción en alta definición.
+1. **Fase 5.2B-2:** Prueba y calibración del pipeline 3D con el primer asset real local (350Z).
+2. **Fase 6:** Adaptador de Printful y despacho segregado de la **SSCARS Gift Box**.
+3. **Fase 7:** Integración de compra física de builds en Stripe Checkout V2 con doble escritura.
+4. **Fase 8:** Renderizador 3D/IA definitivo de producción en alta definición.
 
 ---
-*Fin del documento ARCHITECTURE_V2.md (Versión 2.4.0)*
+*Fin del documento ARCHITECTURE_V2.md (Versión 2.5.0)*

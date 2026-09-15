@@ -1,12 +1,12 @@
 {
   "name": "sscarsgarage",
-  "version": "2.0.0-render-pipeline",
+  "version": "2.0.0-blender-pipeline",
   "private": true,
   "type": "module",
-  "description": "SSCARS GARAGE 2.0 - Build Render Pipeline & Car Card HD",
+  "description": "SSCARS GARAGE 2.0 - 3D Asset Processing Pipeline & Gamification",
   "scripts": {
     "dev": "npx serve public -l 3000",
-    "test": "node test/sorteo.test.mjs && node test/fabricacion.test.mjs && node test/catalogo.test.mjs && node test/supabase-foundation.test.mjs && node test/auth-garage-collection.test.mjs && node test/daily-reward-gamification.test.mjs && node test/tuning-builds-snapshots.test.mjs && node test/build-render-car-card.test.mjs"
+    "test": "node test/sorteo.test.mjs && node test/fabricacion.test.mjs && node test/catalogo.test.mjs && node test/supabase-foundation.test.mjs && node test/auth-garage-collection.test.mjs && node test/daily-reward-gamification.test.mjs && node test/tuning-builds-snapshots.test.mjs && node test/build-render-car-card.test.mjs && node test/blender-pipeline-core.test.mjs"
   },
   "dependencies": {
     "stripe": "^16.12.0"

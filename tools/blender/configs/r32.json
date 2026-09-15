@@ -1,0 +1,27 @@
+{
+  "slug": "r32",
+  "name": "El Monstruo Púrpura",
+  "real_model": "Nissan Skyline GT-R R32 (1989)",
+  "target_length_mm": 70.0,
+  "wheels": {
+    "expected_radius_range_mm": [12.5, 14.5],
+    "expected_width_range_mm": [7.5, 9.5],
+    "symmetry_tolerance_mm": 1.0
+  },
+  "spoiler": {
+    "expected": true,
+    "type": "gt_wing_stanchions",
+    "search_y_ratio": -0.22,
+    "search_z_ratio": 0.58
+  },
+  "exhaust": {
+    "expected": true,
+    "layout": "single_left",
+    "search_y_ratio": -0.45,
+    "search_z_ratio": 0.32
+  },
+  "undercarriage": {
+    "min_ground_clearance_mm": 2.2,
+    "auto_clean_bottom": false
+  }
+}
