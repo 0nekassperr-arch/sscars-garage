@@ -1,0 +1,27 @@
+{
+  "slug": "350z",
+  "name": "Colmillo Azul",
+  "real_model": "Nissan 350Z (2002)",
+  "target_length_mm": 70.0,
+  "wheels": {
+    "expected_radius_range_mm": [12.0, 14.5],
+    "expected_width_range_mm": [7.0, 9.5],
+    "symmetry_tolerance_mm": 1.0
+  },
+  "spoiler": {
+    "expected": false,
+    "type": "ducktail_integrated",
+    "search_y_ratio": -0.30,
+    "search_z_ratio": 0.65
+  },
+  "exhaust": {
+    "expected": true,
+    "layout": "dual_symmetric",
+    "search_y_ratio": -0.45,
+    "search_z_ratio": 0.30
+  },
+  "undercarriage": {
+    "min_ground_clearance_mm": 2.0,
+    "auto_clean_bottom": false
+  }
+}
