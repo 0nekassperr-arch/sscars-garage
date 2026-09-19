@@ -25,6 +25,6 @@ _Todas las vistas disponibles forman parte del set principal._
 
 ## 📝 3. OBSERVACIONES CLAVE PARA MODELADO Y SEGMENTACIÓN
 
-- **Identidad Geométrica:** Blanco perla Whitest White, triple salida de escape triangular central trasera característica, difusor de carbono, alerón activo retraído y tomas de aire traseras en montante C.
+- **Identidad Geométrica:** Blanco perla Whitest White, triple salida de escape triangular central trasera en triángulo invertido (2 arriba, 1 abajo) integrada en difusor negro mate/carbono, calandras de entrada de aire del parachoques delantero en negro, alerón activo retraído y tomas de aire traseras en montante C.
 - **Fondo y Calibración:** Fondo blanco neutro continuo con sombra suave de contacto.
 - **Flujo de Producción:** `produccion/referencias/lfa/` ➔ `Tripo3D` ➔ `lfa_raw.glb` ➔ `Blender Pipeline` ➔ `lfa_master`.
