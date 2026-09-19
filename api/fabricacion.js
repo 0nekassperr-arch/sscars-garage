@@ -1,6 +1,6 @@
 /**
  * Capa de fabricación (print-on-demand).
- * Selecciona el proveedor con la variable FABRICANTE (por defecto 'jlc3dp').
+ * Selecciona el proveedor con la variable FABRICANTE (por defecto 'factory').
  * Cada adaptador declara `requiere` (variables de entorno obligatorias) y
  * `enviar(figura, direccion, orderId)`.
  *
@@ -14,46 +14,28 @@ const MODEL_EXT = process.env.MODEL_EXT || 'stl';
 const fileUrl = (slug, gold) => `${process.env.STL_BASE_URL}/${slug}${gold ? '-gold' : ''}.${MODEL_EXT}`;
 
 const PROVEEDORES = {
-  // Resina MONO (un solo color por pieza). Es la vía de coste bajo (~4-5€ pieza + ~7€ DHL).
-  // ⚠️ SIN VERIFICAR contra la API real: la Ordering API de JLC3DP requiere SOLICITAR acceso
-  // (jlc3dp.com/help/article/jlc3dp-api) y el endpoint/payload exactos se confirman con las
-  // credenciales reales. Mientras tanto, con FABRICANTE=jlc3dp y sin JLC_API_KEY el pedido
-  // cae en MODO MANUAL (te llega por email y subes el 3MF tú en jlc3dp.com) — válido para lanzar.
-  jlc3dp: {
-    requiere: ['JLC_API_KEY', 'STL_BASE_URL'],
+  // Adaptador genérico para taller de fabricación y resina.
+  factory: {
+    requiere: ['FACTORY_API_KEY', 'STL_BASE_URL'],
     async enviar(figura, direccion, orderId) {
-      await fetchRetry('https://api.jlc3dp.com/api/order', {
+      await fetchRetry(process.env.FACTORY_API_URL || 'https://api.factory-adapter.local/order', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Api-Key': process.env.JLC_API_KEY },
+        headers: { 'Content-Type': 'application/json', 'Api-Key': process.env.FACTORY_API_KEY },
         body: JSON.stringify({
           files: [{ url: fileUrl(figura.slug, figura.esGold) }],
           shipping_address: direccion,
-          shipping_method: 'DHL',
+          shipping_method: 'Standard',
           packaging: 'plain_box_no_logo',
-          material: 'X Resin',
+          material: 'Resin',
           notes: `SSCARS ${figura.n} ${figura.name}${figura.esGold ? ' GOLD' : ''} · ${orderId}`
         })
       });
     }
   }
-
-  // Para añadir otro proveedor (Printeers, Shapeways, Marketiger3D...), copia el
-  // bloque de arriba con su endpoint, cabeceras y payload. Ejemplo:
-  //
-  // printeers: {
-  //   requiere: ['PRINTEERS_API_KEY', 'STL_BASE_URL'],
-  //   async enviar(figura, direccion, orderId) {
-  //     await fetchRetry('https://.../order', {
-  //       method: 'POST',
-  //       headers: { Authorization: `Bearer ${process.env.PRINTEERS_API_KEY}`, 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ model_url: fileUrl(figura.slug, figura.esGold), shipping: direccion, order_id: orderId })
-  //     });
-  //   }
-  // }
 };
 
 export async function pedirAFabrica(figura, direccion, orderId) {
-  const nombre = process.env.FABRICANTE || 'jlc3dp';
+  const nombre = process.env.FABRICANTE || 'factory';
   const prov = PROVEEDORES[nombre];
   if (!prov) return { ok: false, motivo: `FABRICANTE desconocido: ${nombre}` };
 

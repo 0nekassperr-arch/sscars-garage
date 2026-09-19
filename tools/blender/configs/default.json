@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "name": "Default SSCARS Vehicle Config",
+  "target_length_mm": 70.0,
+  "axes": {
+    "width": "X",
+    "length": "Y",
+    "height": "Z",
+    "front_positive_y": true,
+    "up_positive_z": true
+  },
+  "confidence_thresholds": {
+    "auto_accept": 0.85,
+    "review_required": 0.60,
+    "fail": 0.35
+  },
+  "wheels": {
+    "expected_radius_range_mm": [9.0, 16.0],
+    "expected_width_range_mm": [5.0, 12.0],
+    "symmetry_tolerance_mm": 1.5,
+    "normal_alignment_threshold": 0.75,
+    "crease_angle_deg": 35.0
+  },
+  "body": {
+    "min_volume_ratio": 0.50
+  },
+  "spoiler": {
+    "search_y_ratio": -0.20,
+    "search_z_ratio": 0.60
+  },
+  "exhaust": {
+    "search_y_ratio": -0.40,
+    "search_z_ratio": 0.35
+  },
+  "undercarriage": {
+    "min_ground_clearance_mm": 1.8,
+    "detect_flat_closure": true,
+    "auto_clean_bottom": false
+  },
+  "export": {
+    "master_blend": true,
+    "web_glb": {
+      "enabled": true,
+      "draco_compression": true,
+      "target_size_kb": 1500,
+      "reduce_polygons": false
+    },
+    "print_3mf": {
+      "enabled": true,
+      "hollow_thickness_mm": 2.0,
+      "drainage_hole_mm": 4.0
+    }
+  }
+}
