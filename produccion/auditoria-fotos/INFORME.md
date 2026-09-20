@@ -170,6 +170,26 @@ defecto, igual que un alerón, una llanta o un color distintos.
 - Referencia 3D actualizada en `produccion/referencias/lfa/lfa-tresc-trasera.webp`
 - Par frontal+trasera verificado en `lfa-CORREGIDO.jpg`
 
+### 3ª revisión — orientación unificada y emblema eliminado (20/09/2026)
+
+La trasera miraba hacia la izquierda (zaga a la derecha del encuadre) mientras **todas las
+demás traseras de la colección miran hacia la derecha** (zaga a la izquierda del encuadre).
+Además era la única trasera con **emblema de marca visible** (la "L" de Lexus en el maletero).
+
+| | Rear (anterior) | Rear (nueva) |
+|---|---|---|
+| Orientación | Zaga a la derecha, morro a la izquierda | Zaga a la izquierda, morro a la derecha — **igual que el resto de la colección** |
+| Emblema del maletero | "L" de Lexus visible | **Eliminado**, chapa blanca limpia |
+| Insignia "F" de la aleta | Visible, orientación normal | Se mantiene con **orientación correcta** (recompuesta tras el volteado, no invertida) |
+| Resto | — | Idéntico píxel a píxel (volteado horizontal): misma miniatura, ópticas, escape triangular, llantas, fondo y sombra |
+
+- Vista previa preservada en `produccion/lfa-fix/rear-v3/lfa-rear-PREVIO.webp`
+- Comparativa antes/después en `produccion/lfa-fix/rear-v3/comparativa-antes-despues.jpg`
+- Referencia 3D actualizada en `produccion/referencias/lfa/lfa-tresc-trasera.webp`
+
+**Criterio fijado:** todas las vistas traseras miran hacia la derecha y van **sin emblemas
+de marca** en el maletero.
+
 ---
 
 ## Observación adicional: resoluciones desiguales

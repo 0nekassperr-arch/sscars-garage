@@ -12,7 +12,7 @@ Utilizadas para los 4 slots de generación multivista en Tripo3D / Meshy:
 
 1. **Front (1-front):** `lfa-tresc-frontal.webp (1100x733)`
 2. **Left (2-left):** `lfa-lateral.webp (1100x733)`
-3. **Back (3-back):** `lfa-tresc-trasera.webp (1100x733)` — actualizada (rear v2, altura de suspensión baja como el frontal)
+3. **Back (3-back):** `lfa-tresc-trasera.webp (1100x733)` — actualizada (rear v3: mira a la derecha como el resto de la colección, emblema "L" eliminado, altura de suspensión baja como el frontal)
 4. **Right (4-right):** `lfa-lateral-derecha.webp (1100x733)`
 
 ---
