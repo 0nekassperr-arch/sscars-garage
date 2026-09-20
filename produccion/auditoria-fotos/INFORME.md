@@ -12,10 +12,10 @@ Fecha: 25/08/2026 · Pares comparativos en esta misma carpeta (`<modelo>.jpg`).
 
 | Estado | Modelos |
 |---|---|
-| ✅ Coherente | R34, R32, 350Z, AE86, MR2, NSX, Civic, S2000, 3000GT, LFA |
-| 🔧 Corregido | Eclipse, Evo, Supra, RX-7, WRC |
+| ✅ Coherente | R34, R32, 350Z, AE86, MR2, NSX, Civic, S2000, 3000GT |
+| 🔧 Corregido | Eclipse, Evo, Supra, RX-7, WRC, LFA |
 
-**10 de 15 estaban correctos. Los 5 restantes se han corregido.** Colección fiel y coherente al 100 %.
+**9 de 15 estaban correctos. Los 6 restantes se han corregido.** Colección fiel y coherente al 100 %.
 
 ---
 
@@ -135,6 +135,43 @@ las llantas de competición doradas de 6 radios, el alerón WRC alto y el escape
 
 ---
 
+## 🔧 LFA — CORREGIDO (2ª revisión)
+
+La vista trasera del Lexus LFA incumplía el criterio de **fidelidad al modelo real** y el de
+**postura de la miniatura**:
+
+| | Rear (antigua) | Rear (nueva) |
+|---|---|---|
+| Pilotos traseros | Manchas rojas blandas y redondeadas, sin carcasa | Ópticas LFA auténticas: carcasa oscura con lente roja rasgada, envolviendo la aleta y con el borde superior fino |
+| Trasera | Parachoques liso y abombado, sin salidas de aire | Parachoques con **paneles de rejilla negra** en las esquinas, hueco central de matrícula y parrilla inferior de malla, como el LFA real |
+| Salida de escape | Rejilla negra con tres tubos sueltos, geometría ambigua | Difusor negro con **triple salida cromada en triángulo invertido (2 arriba, 1 abajo)** perfectamente definida |
+| Alerón | Aleta blanca levantada, tipo "spoiler de techo" | Alerón activo **retraído y plano** sobre la tapa del maletero, como el de la vista lateral y el frontal |
+| Altura / postura | Coche **más alto**, con más aire entre neumático y paso de rueda y taloneras separadas del suelo | Misma **altura de suspensión baja** que el frontal: neumáticos encajados en los pasos de rueda y taloneras prácticamente pegadas al suelo |
+| Dimensiones | 1024×1024 (descuadrado respecto al frontal) | 1100×**733**, idéntico al frontal |
+
+`public/images/lfa-rear.webp` regenerado a **1100×733 WebP** (candidata C), con la misma
+miniatura, el mismo blanco perla, las mismas llantas negras multiradio con dibujo de
+neumático, el mismo fondo blanco de estudio y la misma sombra de contacto suave que el frontal.
+
+Además se ha regularizado `public/images/lfa-front.webp` a **1100×733** (venía de 1100×**734**,
+el caso suelto señalado abajo); se ha regenerado desde su fuente original
+(`produccion/lfa-fix/lfa-front-propuesta-B.jpg`, RMSE 0,005 respecto al fichero previo, es decir
+la misma imagen) para que ambos ficheros del modelo midan exactamente igual.
+
+**Criterio fijado para futuras generaciones:** todas las vistas de un mismo modelo deben
+mantener la **altura de suspensión baja de la vista frontal** (rueda encajada en el paso de
+rueda, taloneras cerca del suelo). Una vista trasera con el coche "levantado" se considera
+defecto, igual que un alerón, una llanta o un color distintos.
+
+- Vista previa preservada en `produccion/lfa-fix/rear-v2/lfa-rear-PREVIO.webp`
+- Candidatas descartadas: `produccion/lfa-fix/rear-v2/lfa-rear-candidata-{A,B,D}-descartada.jpg`
+  (A y B: miniatura/cámara diferentes y postura más alta; D: encuadre y escala distintos)
+- Comparativa antes/después en `produccion/lfa-fix/rear-v2/comparativa-antes-despues.jpg`
+- Referencia 3D actualizada en `produccion/referencias/lfa/lfa-tresc-trasera.webp`
+- Par frontal+trasera verificado en `lfa-CORREGIDO.jpg`
+
+---
+
 ## Observación adicional: resoluciones desiguales
 
 No afecta a la coherencia del producto pero sí a la calidad percibida y al uso como
@@ -142,12 +179,13 @@ referencia 3D:
 
 | Resolución | Modelos |
 |---|---|
-| 1100×733 en ambas | 350Z, Eclipse, R32 |
-| 1100×733 front / 1024×1024 rear | 3000GT, Civic, Evo, LFA, NSX, RX-7, S2000, Supra, WRC |
+| 1100×733 en ambas | 350Z, Eclipse, R32, **LFA** |
+| 1100×733 front / 1024×1024 rear | 3000GT, Civic, Evo, NSX, RX-7, S2000, Supra, WRC |
 | 1100×733 front / 1100×1100 rear | AE86, MR2 |
 | 1024×1024 en ambas | R34, Gold |
 
-Casos sueltos: `lfa-front.webp` mide 1100×**734** (un píxel de más).
+Casos sueltos: ninguno pendiente — `lfa-front.webp` medía 1100×**734** (un píxel de más) y se ha
+regularizado a 1100×733 junto con su vista trasera en la corrección del LFA (ver arriba).
 
 Meshy recomienda ≥1040×1040 px. Si se van a generar mallas 3D del resto de modelos como
 se hizo con el R34, conviene homogeneizar a un tamaño único y subir resolución.
