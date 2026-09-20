@@ -776,7 +776,7 @@ const MODELOS = [
   {n:'12', name:'Verde Veneno', tag:'Imposible de ignorar. Color fósforo y alerón descomunal.', slug:'eclipse'},
   {n:'13', name:'El Visionario', tag:'V6 biturbo y electrónica veinte años por delante de su tiempo.', slug:'3000gt'},
   {n:'14', name:'El Azul del Rally', tag:'Ensanchado, llantas doradas y alma de tramo cronometrado.', slug:'wrc'},
-  {n:'15', name:'La Voz del V10', tag:'Diez cilindros atmosféricos. Más instrumento musical que coche.', slug:'lfa'}
+  {n:'15', name:'La Voz del V10', tag:'Diez cilindros atmosféricos. Más instrumento musical que coche.', slug:'lfa', rv:'?v=3'}
 ];
 
 const PACKS = [
@@ -795,6 +795,10 @@ const eur = n => n.toFixed(2).replace('.', ',') + '€';
 const API_BASE = location.hostname.endsWith('github.io') ? 'https://sscarsgarage.vercel.app' : '';
 const $ = s => document.querySelector(s);
 
+/* Las imágenes llevan caché inmutable de 1 año (vercel.json): al actualizar la
+   foto de un modelo se sube `rv`/`fv` en su entrada de MODELOS para cambiar la URL. */
+const rearSrc = m => `images/${m.slug}-rear.webp${m.rv||''}`;
+
 /* ================= GRID ================= */
 const grid = $('#grid');
 grid.innerHTML = MODELOS.map((m,i) => `
@@ -802,7 +806,7 @@ grid.innerHTML = MODELOS.map((m,i) => `
     <button class="shot" data-i="${i}" aria-label="Ampliar ${m.name}">
       <span class="num">${m.n}</span>
       <img class="front" src="images/${m.slug}-front.webp" width="1100" height="1100" alt="${m.name}, vista delantera" loading="${i<4?'eager':'lazy'}" decoding="async">
-      <img class="rear"  src="images/${m.slug}-rear.webp"  width="1100" height="1100" alt="${m.name}, vista trasera" loading="lazy" decoding="async">
+      <img class="rear"  src="${rearSrc(m)}"  width="1100" height="1100" alt="${m.name}, vista trasera" loading="lazy" decoding="async">
       <span class="zoomhint">Ampliar</span>
     </button>
     <div class="cbody">
