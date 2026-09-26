@@ -18,9 +18,13 @@ sscarsgarage/
 │       ├── logo-sscars-cropped.jpg # 1024x247 (crop del original 1024x1024: top 396 / bottom 643)
 │       ├── {slug}-front.webp       # 15 delanteras (todas ¾ frontal, mismo sentido)
 │       ├── {slug}-rear.webp        # 15 traseras (todas ¾ trasera, mismo sentido)
+│       ├── cartas/{nn}-{slug}.webp # 15 cartas artísticas (1280x1792, numeradas 01..15)
 │       ├── gold-front.webp         # ejemplo Gold Chrome (NSX dorado)
 │       └── gold-rear.webp
+│   └── js/
+│       └── cartas-data.js          # carta de cada modelo para el navegador (generado)
 ├── api/
+│   ├── cartas.js                   # fuente única: arte, OVR y estadísticas de las 15 cartas
 │   ├── _lib.js                     # Upstash (idempotencia + log), reintentos, avisos por email
 │   ├── checkout.js                 # sesión de Stripe Checkout (envío obligatorio + metadata.cantidad)
 │   ├── order.js                    # webhook Stripe → sorteo anti-repes + Gold 1/500 → fabricación
@@ -36,23 +40,30 @@ sscarsgarage/
 
 ## 2. Mapeo de los 15 modelos (slug = fichero)
 
-| # | Nombre | slug | front | rear |
-|---|--------|------|-------|------|
-| 01 | El Ronin de Medianoche | r34 | r34-front.webp | r34-rear.webp |
-| 02 | El Ogro de la Autopista | r32 | r32-front.webp (piloto rojo eliminado) | r32-rear.webp (nueva) |
-| 03 | La Zeta Salvaje | 350z | 350z-front.webp (azul, forma real) | 350z-rear.webp (azul) |
-| 04 | El Naranja Furioso | supra | supra-front.webp | supra-rear.webp |
-| 05 | El Repartidor de Tofu | ae86 | ae86-front.webp | ae86-rear.webp |
-| 06 | El Mini Exótico | mr2 | mr2-front.webp | mr2-rear.webp |
-| 07 | El Espíritu Rotativo | rx7 | rx7-front.webp | rx7-rear.webp |
-| 08 | El Samurái de Senna | nsx | nsx-front.webp | nsx-rear.webp |
-| 09 | El Pequeño Tipo R | civic | civic-front.webp | civic-rear.webp |
-| 10 | El Grito VTEC | s2000 | s2000-front.webp | s2000-rear.webp |
-| 11 | El Evolucionado | evo | evo-front.webp | evo-rear.webp |
-| 12 | El Verde Fosforito | eclipse | eclipse-front.webp (faros fijos) | eclipse-rear.webp |
-| 13 | El Gran Turismo | 3000gt | 3000gt-front.webp | 3000gt-rear.webp |
-| 14 | El 22B Azul | wrc | wrc-front.webp | wrc-rear.webp |
-| 15 | El Ángel Blanco | lfa | lfa-front.webp | lfa-rear.webp |
+El **nombre artístico** y el **OVR** de cada modelo son los de su carta artística
+(`api/cartas.js`), correlativa 1:1 con la numeración de la colección.
+
+| # | Nombre | slug | front | rear | carta (OVR) |
+|---|--------|------|-------|------|-------------|
+| 01 | El Emperador Azul | r34 | r34-front.webp | r34-rear.webp | cartas/01-r34.webp · 93 |
+| 02 | El Monstruo Púrpura | r32 | r32-front.webp (piloto rojo eliminado) | r32-rear.webp (nueva) | cartas/02-r32.webp · 92 |
+| 03 | Colmillo Azul | 350z | 350z-front.webp (azul, forma real) | 350z-rear.webp (azul) | cartas/03-350z.webp · 89 |
+| 04 | La Bestia Naranja | supra | supra-front.webp | supra-rear.webp | cartas/04-supra.webp · 94 |
+| 05 | El Fantasma de la Montaña | ae86 | ae86-front.webp | ae86-rear.webp | cartas/05-ae86.webp · 88 |
+| 06 | El Exótico de Bolsillo | mr2 | mr2-front.webp | mr2-rear.webp | cartas/06-mr2.webp · 86 |
+| 07 | El Aullido Rotativo | rx7 | rx7-front.webp | rx7-rear.webp | cartas/07-rx7.webp · 90 |
+| 08 | El Samurái Rojo | nsx | nsx-front.webp | nsx-rear.webp | cartas/08-nsx.webp · 91 |
+| 09 | El Puño Blanco | civic | civic-front.webp | civic-rear.webp | cartas/09-civic.webp · 87 |
+| 10 | El Grito Amarillo | s2000 | s2000-front.webp | s2000-rear.webp | cartas/10-s2000.webp · 88 |
+| 11 | El Domador | evo | evo-front.webp | evo-rear.webp | cartas/11-evo.webp · 89 |
+| 12 | Verde Veneno | eclipse | eclipse-front.webp (faros fijos) | eclipse-rear.webp | cartas/12-eclipse.webp · 88 |
+| 13 | El Visionario | 3000gt | 3000gt-front.webp | 3000gt-rear.webp | cartas/13-3000gt.webp · 87 |
+| 14 | El Azul del Rally | wrc | wrc-front.webp | wrc-rear.webp | cartas/14-wrc.webp · 90 |
+| 15 | La Voz del V10 | lfa | lfa-front.webp | lfa-rear.webp | cartas/15-lfa.webp · 96 |
+
+Las cartas son el arte de cada modelo para los **lienzos print-on-demand**
+(Printify): 15 modelos × 3 láminas (delantera, trasera, carta) = 45 productos.
+Detalles, medidas y DPI en `produccion/LIENZOS_PRINTIFY.md`.
 
 Sin duplicados: cada modelo usa exclusivamente su propia trasera (el 02 nunca muestra el 01).
 
@@ -66,7 +77,7 @@ Sin duplicados: cada modelo usa exclusivamente su propia trasera (el 02 nunca mu
 
 - **Header fijo 64 px** (`position:fixed`, z-index 999): logo 140 px + `COMPRAR AHORA` rojo + carrito con badge + hamburguesa. Drawer a `top:64px`, ancho 100 %, integrado bajo el banner, se cierra al clicar fuera o en un link. Sombra al hacer scroll.
 - **Hero:** COLECCIÓN LIMITADA (tracking .35em) / LEYENDAS JDM (rojo) / 15 ICONOS ÚNICOS (negro) + contador rojo de 4 cajas con pulse, target **31/12/2026 23:59:59 Europe/Madrid**, y el aviso “Una vez que el contador llegue a 0…”.
-- **Grid de 15 productos:** delantera primero, crossfade a trasera en hover (desktop) y botón `Ver trasera / Ver frente` en móvil. Click en la foto → modal con delantera + trasera lado a lado, cierre con ✕, overlay o `ESC`.
+- **Grid de 15 productos:** delantera primero, crossfade a trasera en hover (desktop), chip `OVR` de la carta y botones `Ver trasera / Ver carta` en móvil. Click en la foto o en `Ver carta` → modal con **delantera + trasera + carta** del modelo, su OVR, su rareza y las seis estadísticas (VEL · ACE · MAN · POT · EST · RAR); cierre con ✕, overlay o `ESC`.
 - **ACABADO A COLOR:** texto corto (sin “pintado a mano”) + 3 bullets (resina a color / caja sorpresa / base negra).
 - **GOLD CHROME:** ejemplo con las dos fotos doradas + “versión dorada cromada secreta, 1/500 por caja”.
 - **Packs:** 24,95 € / 69,95 € (3 cajas, badge MÁS VENDIDO, 3 unidades) / 129,95 € (6 unidades) / 669,95 € (colección completa). Precio en Impact 48 px, tarjetas 1 px #E5E5E5, radio 20, padding 32.
@@ -85,7 +96,9 @@ Sin duplicados: cada modelo usa exclusivamente su propia trasera (el 02 nunca mu
    `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_BOX1`, `STRIPE_PRICE_BOX3`, `STRIPE_PRICE_BOX6`, `STRIPE_PRICE_FULL`, `JLC_API_KEY`, `STL_BASE_URL`.
 5. Stripe → Webhooks → endpoint `https://sscarsgarage.roadshop.online/api/order`, evento `checkout.session.completed`.
 6. Dominio en Vercel: `sscarsgarage.roadshop.online` (CNAME `cname.vercel-dns.com`) + redirect desde `sscars.roadshop.online`.
-7. Test con tarjeta `4242 4242 4242 4242`.
+7. Supabase → aplica las migraciones en orden (`001` … `012`); la **012** mete el arte de las
+   15 cartas y el catálogo de los 45 lienzos de Printify.
+8. Test con tarjeta `4242 4242 4242 4242`.
 
 ## 5. Flujo anti-repes + Gold 1/500
 
@@ -104,3 +117,9 @@ Sin duplicados: cada modelo usa exclusivamente su propia trasera (el 02 nunca mu
 - Sustituir los `href="#"` de las redes sociales y de los links de footer (Envíos, Contacto) por las URLs reales.
 - Añadir páginas legales (aviso legal, privacidad, condiciones de venta y desistimiento) — obligatorio para vender en la UE.
 - Subir los STL y confirmar los nombres de fichero que espera `api/order.js`.
+- **Aplicar la migración 012** (`cards_artwork_and_canvas_catalog.sql`) para que las cartas
+  entren en `cards` / `cars.images` y queden dados de alta los 45 lienzos de Printify.
+- Crear los lienzos en Printify y activar sus filas (`active = true`) con el precio final;
+  medidas, DPI y pasos en `produccion/LIENZOS_PRINTIFY.md`.
+- Si alguna carta se rehace, sustituir `produccion/cartas/{nn}-{slug}.webp` (maestro), regenerar
+  el arte web y `node tools/generar-cartas-web.mjs`, y volver a lanzar `npm test`.

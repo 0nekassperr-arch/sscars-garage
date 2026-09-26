@@ -134,7 +134,8 @@ supabase/migrations/
 ├── 008_driver_level_and_timezone.sql (Función inmutable XP->Level y timezone Europe/Madrid)
 ├── 009_seed_cards_and_daily_reward_engine.sql (Seed de 30 cartas + Motor Daily Drop y duplicados)
 ├── 010_tuning_builds_and_snapshots.sql (Catálogo 5 categorías, cálculo stats, builds y snapshots)
-└── 011_render_jobs_and_storage_privacy.sql (Tabla render_jobs, RPC de render y storage privado)
+├── 011_render_jobs_and_storage_privacy.sql (Tabla render_jobs, RPC de render y storage privado)
+└── 012_cards_artwork_and_canvas_catalog.sql (Arte de las 15 cartas + catálogo de 45 lienzos Printify)
 ```
 
 ---

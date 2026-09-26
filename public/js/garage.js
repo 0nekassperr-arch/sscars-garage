@@ -10,6 +10,10 @@
   let currentUserCards = [];
   let activeFilter = 'all';
 
+  // Cartas artísticas de los 15 modelos (js/cartas-data.js, generado desde api/cartas.js).
+  const CARTAS = (typeof window !== 'undefined' && window.SSCARS_CARTAS) ? window.SSCARS_CARTAS : { cartaDe: () => null };
+  const ETIQUETAS_EST = { vel: 'VEL', ace: 'ACE', man: 'MAN', pot: 'POT', est: 'EST', rar: 'RAR' };
+
   const $ = id => document.getElementById(id);
 
   // Inicializar interfaz
@@ -158,7 +162,18 @@
       const isGold = Boolean(owned && owned.is_gold);
       const rarity = isGold ? 'gold_chrome' : (car.rarity || 'rare');
       const stats = car.base_stats || {};
-      const imgUrl = (car.images && car.images.front) ? car.images.front : `images/${car.slug}-front.webp`;
+      // La ilustración de la colección es la carta artística del modelo; si el catálogo
+      // aún no la trae (base de datos antigua), se cae a la foto de la figura.
+      const carta = CARTAS.cartaDe(car.slug);
+      // Si la carta ya está en la colección del usuario manda su arte (Supabase Storage);
+      // si no, el arte del catálogo y, como último recurso, la foto de la figura.
+      const imgUrl = (owned && owned.image_path) ? owned.image_path
+                   : (car.images && car.images.card) ? car.images.card
+                   : (carta && carta.arte) ? carta.arte
+                   : (car.images && car.images.front) ? car.images.front
+                   : `images/${car.slug}-front.webp`;
+      const ovr = (owned && owned.ovr) || car.ovr || (carta && carta.ovr);
+      const estCarta = (owned && owned.stats) || car.card_stats || (carta && carta.stats);
 
       if (owned) {
         return `
@@ -168,10 +183,13 @@
               <span class="card-rarity ${getRarityClass(rarity)}">${isGold ? '✨ GOLD CHROME' : rarity.toUpperCase()}</span>
             </div>
             <div class="card-img-wrap">
-              <img src="${imgUrl}" alt="${car.name}" loading="lazy">
+              <img src="${imgUrl}" alt="Carta artística de ${car.name}" loading="lazy">
+              ${ovr ? `<span class="card-ovr">OVR ${ovr}</span>` : ''}
             </div>
             <div class="card-title">${car.name}</div>
             <div class="card-model">${car.real_model} (${car.year})</div>
+            ${ovr && estCarta ? `<div class="card-est">${Object.keys(ETIQUETAS_EST).map(k =>
+              `<span><i>${ETIQUETAS_EST[k]}</i><b>${estCarta[k] != null ? estCarta[k] : '—'}</b></span>`).join('')}</div>` : ''}
             <div class="card-stats">
               <div class="stat-row"><span class="stat-k">Potencia:</span><span class="stat-v">${stats.hp || 280} CV</span></div>
               <div class="stat-row"><span class="stat-k">Vel. Máx:</span><span class="stat-v">${stats.top_speed_kmh || 250} km/h</span></div>

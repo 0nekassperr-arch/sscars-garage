@@ -369,7 +369,7 @@
       if (!this.isAuthenticated()) return [];
       const userId = this.getUser().id;
       // Lectura aislada de user_cards protegida por RLS
-      const userCards = await restFetch(`user_cards?user_id=eq.${userId}&select=id,card_id,obtained_at,source,metadata,cards(id,car_id,rarity,code,is_gold,cars(id,number,slug,name,real_model,year,base_stats,images))`);
+      const userCards = await restFetch(`user_cards?user_id=eq.${userId}&select=id,card_id,obtained_at,source,metadata,cards(id,car_id,rarity,code,is_gold,image_path,ovr,stats,cars(id,number,slug,name,real_model,year,base_stats,images))`);
       return userCards || [];
     },
 

@@ -165,6 +165,7 @@ main{padding-top:var(--head)}
 .shot.flipped img.rear{opacity:1}
 @media(hover:hover) and (pointer:fine){.shot:hover img.front{opacity:0}.shot:hover img.rear{opacity:1}}
 .num{position:absolute;top:12px;left:12px;font-family:var(--impact);font-size:13px;letter-spacing:.08em;background:#000;color:#fff;border-radius:999px;padding:5px 11px;z-index:2}
+.ovr{position:absolute;top:12px;right:12px;z-index:2;background:#FFD879;color:#111;font-family:var(--impact);font-size:13px;letter-spacing:.06em;border-radius:999px;padding:5px 11px}
 .zoomhint{position:absolute;bottom:10px;right:10px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;z-index:2;color:#666}
 .cbody{padding:16px 16px 18px;display:flex;flex-direction:column;flex:1}
 .cname{font-family:var(--impact);font-size:19px;line-height:1.1;text-transform:uppercase;margin:0}
@@ -317,6 +318,20 @@ footer img.flogo{width:120px;margin:0 auto 20px}
 .mshot{background:var(--grey);border-radius:20px;aspect-ratio:1/1;padding:5%;position:relative}
 .mshot img{width:100%;height:100%;object-fit:contain}
 .mshot span{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#888}
+/* ---- carta artística del modelo (lámina vertical 5:7) ---- */
+.mshot.carta{aspect-ratio:5/7;background:#111;padding:0;overflow:hidden}
+.mshot.carta img{border-radius:20px}
+.mshot.carta span{color:#FFD879}
+.mstats{margin-top:22px}
+.movr{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px}
+.movr b{font-family:var(--impact);font-size:32px;line-height:1}
+.movr .mlab{font-size:11px;font-weight:900;letter-spacing:.2em;color:#888}
+.movr .mrar{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#FF1A1A;border:1px solid rgba(255,26,26,.4);border-radius:999px;padding:4px 10px}
+.mstatgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:8px;max-width:640px;margin:0 auto}
+.mstat{background:var(--grey);border-radius:12px;padding:10px 6px}
+.mstat i{display:block;font-style:normal;font-size:10px;font-weight:900;letter-spacing:.14em;color:#888}
+.mstat b{font-family:var(--impact);font-size:22px}
+.mnote{margin-top:14px;font-size:12px;color:#888}
 .mclose{position:fixed;top:14px;right:14px;width:46px;height:46px;border-radius:999px;background:#000;color:#fff;font-size:20px;z-index:2;display:flex;align-items:center;justify-content:center}
 .mcta{margin-top:24px}
 
@@ -753,14 +768,21 @@ footer img.flogo{width:120px;margin:0 auto 20px}
     <div class="mgrid">
       <div class="mshot"><img id="mfront" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E" alt="" width="1100" height="1100"><span>Delantera</span></div>
       <div class="mshot"><img id="mrear" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E" alt="" width="1100" height="1100"><span>Trasera</span></div>
+      <div class="mshot carta"><img id="mcard" src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22/%3E" alt="" width="1000" height="1400"><span>Carta del modelo</span></div>
     </div>
+    <div class="mstats" id="mstats" hidden></div>
     <a href="#packs" class="btn-buy mcta" id="mcta">Quiero mi caja</a>
   </div>
 </div>
 
+<!-- Cartas artísticas de los 15 modelos (generado desde api/cartas.js) -->
+<script src="js/cartas-data.js"></script>
 <script>
 "use strict";
 /* ================= DATA ================= */
+/* Las cartas artísticas de los 15 modelos viven en js/cartas-data.js (generado desde
+   api/cartas.js): número, nombre, rareza, OVR, seis estadísticas y el arte de la lámina. */
+const CARTAS = (typeof window !== 'undefined' && window.SSCARS_CARTAS) ? window.SSCARS_CARTAS : { lista: [], cartaDe: () => null };
 const MODELOS = [
   {n:'01', name:'El Emperador Azul', tag:'Reinaba en la Wangan a las 3 de la mañana. Nadie le aguantaba el ritmo.', slug:'r34'},
   {n:'02', name:'El Monstruo Púrpura', tag:'La prensa lo llamó monstruo: se comía coches del doble de precio.', slug:'r32'},
@@ -791,13 +813,26 @@ const PACKS = [
 ];
 
 const eur = n => n.toFixed(2).replace('.', ',') + '€';
+
+/* Cada modelo arrastra los datos de su carta (arte, OVR y estadísticas), de forma que
+   la ficha siempre enseña la carta correlativa correcta. */
+MODELOS.forEach(m => {
+  const c = CARTAS.cartaDe(m.slug);
+  if (!c) return;
+  m.ovr = c.ovr;
+  m.rareza = c.rareza;
+  m.stats = c.stats;
+  m.arte = c.arte;
+});
 /* En GitHub Pages no hay backend: el pago sólo funciona en el dominio de Vercel. */
 const API_BASE = location.hostname.endsWith('github.io') ? 'https://sscarsgarage.vercel.app' : '';
 const $ = s => document.querySelector(s);
 
 /* Las imágenes llevan caché inmutable de 1 año (vercel.json): al actualizar la
-   foto de un modelo se sube `rv`/`fv` en su entrada de MODELOS para cambiar la URL. */
+   foto de un modelo se sube `fv`/`rv` y, al rehacer su carta, `cv`, en su entrada
+   de MODELOS para cambiar la URL. */
 const rearSrc = m => `images/${m.slug}-rear.webp${m.rv||''}`;
+const cardSrc = m => `${m.arte||''}${m.cv||''}`;
 
 /* ================= GRID ================= */
 const grid = $('#grid');
@@ -805,6 +840,7 @@ grid.innerHTML = MODELOS.map((m,i) => `
   <article class="card">
     <button class="shot" data-i="${i}" aria-label="Ampliar ${m.name}">
       <span class="num">${m.n}</span>
+      ${m.ovr ? `<span class="ovr">OVR ${m.ovr}</span>` : ''}
       <img class="front" src="images/${m.slug}-front.webp" width="1100" height="1100" alt="${m.name}, vista delantera" loading="${i<4?'eager':'lazy'}" decoding="async">
       <img class="rear"  src="${rearSrc(m)}"  width="1100" height="1100" alt="${m.name}, vista trasera" loading="lazy" decoding="async">
       <span class="zoomhint">Ampliar</span>
@@ -813,6 +849,7 @@ grid.innerHTML = MODELOS.map((m,i) => `
       <h3 class="cname">${m.name}</h3>
       <p class="ctag">${m.tag}</p>
       <button class="flipbtn" data-flip="${i}">Ver trasera</button>
+      <button class="flipbtn" data-card="${i}">Ver carta</button>
     </div>
   </article>`).join('');
 
@@ -824,6 +861,11 @@ grid.addEventListener('click', e => {
     flip.textContent = f ? 'Ver frente' : 'Ver trasera';
     return;
   }
+  const card = e.target.closest('[data-card]');
+  if (card){
+    openModal(+card.dataset.card);
+    return;
+  }
   const s = e.target.closest('.shot');
   if (s) openModal(+s.dataset.i);
 });
@@ -831,14 +873,36 @@ grid.addEventListener('click', e => {
 /* ================= MODAL ================= */
 const modal = $('#modal');
 let lastFocus = null;
+const EST_ETIQUETAS = { vel: 'VEL', ace: 'ACE', man: 'MAN', pot: 'POT', est: 'EST', rar: 'RAR' };
 function openModal(i){
   const m = MODELOS[i];
   lastFocus = document.activeElement;
   $('#mtitle').textContent = m.n + ' · ' + m.name;
   $('#mtag').textContent = m.tag;
-  const f = $('#mfront'), r = $('#mrear');
+  const f = $('#mfront'), r = $('#mrear'), c = $('#mcard');
   f.src = `images/${m.slug}-front.webp`; f.alt = m.name + ', vista delantera';
   r.src = `images/${m.slug}-rear.webp`;  r.alt = m.name + ', vista trasera';
+  if (m.arte){
+    c.src = cardSrc(m); c.alt = `${m.name}, carta artística nº ${m.n} de 15`;
+    c.parentElement.hidden = false;
+  } else {
+    c.removeAttribute('src');
+    c.parentElement.hidden = true;
+  }
+  const statsBox = $('#mstats');
+  if (statsBox){
+    if (m.ovr && m.stats){
+      statsBox.hidden = false;
+      statsBox.innerHTML =
+        `<div class="movr"><span class="mlab">OVR</span><b>${m.ovr}</b><span class="mrar">${m.rareza || ''}</span></div>
+         <div class="mstatgrid">${Object.keys(EST_ETIQUETAS).map(k =>
+            `<div class="mstat"><i>${EST_ETIQUETAS[k]}</i><b>${m.stats[k]}</b></div>`).join('')}</div>
+         <p class="mnote">Carta ${m.n}/15 de la colección · arte de ${m.name}.</p>`;
+    } else {
+      statsBox.hidden = true;
+      statsBox.innerHTML = '';
+    }
+  }
   modal.classList.add('open');
   lockScroll(true);
   $('#mclose').focus();

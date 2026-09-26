@@ -1,22 +1,44 @@
 /** Los 15 modelos de la colección y el sorteo ponderado de la caja sorpresa. */
 
-export const MODELOS = [
-  { n: '01', name: 'El Emperador Azul',        slug: 'r34',     peso: 2.5 },
-  { n: '02', name: 'El Monstruo Purpura',      slug: 'r32',     peso: 7   },
-  { n: '03', name: 'Colmillo Azul',            slug: '350z',    peso: 7   },
-  { n: '04', name: 'La Bestia Naranja',        slug: 'supra',   peso: 2.5 },
-  { n: '05', name: 'El Fantasma de la Montana',slug: 'ae86',    peso: 9   },
-  { n: '06', name: 'El Exotico de Bolsillo',   slug: 'mr2',     peso: 9   },
-  { n: '07', name: 'El Aullido Rotativo',      slug: 'rx7',     peso: 5   },
-  { n: '08', name: 'El Samurai Rojo',          slug: 'nsx',     peso: 5   },
-  { n: '09', name: 'El Puno Blanco',           slug: 'civic',   peso: 9   },
-  { n: '10', name: 'El Grito Amarillo',        slug: 's2000',   peso: 7   },
-  { n: '11', name: 'El Domador',               slug: 'evo',     peso: 7   },
-  { n: '12', name: 'Verde Veneno',             slug: 'eclipse', peso: 9   },
-  { n: '13', name: 'El Visionario',            slug: '3000gt',  peso: 9   },
-  { n: '14', name: 'El Azul del Rally',        slug: 'wrc',     peso: 7   },
-  { n: '15', name: 'La Voz del V10',           slug: 'lfa',     peso: 5   }
+import { cartaDe } from './cartas.js';
+
+const BASE = [
+  // El nombre artístico de cada modelo vive en su carta (api/cartas.js): una sola fuente.
+  { n: '01', slug: 'r34',     peso: 2.5 },
+  { n: '02', slug: 'r32',     peso: 7   },
+  { n: '03', slug: '350z',    peso: 7   },
+  { n: '04', slug: 'supra',   peso: 2.5 },
+  { n: '05', slug: 'ae86',    peso: 9   },
+  { n: '06', slug: 'mr2',     peso: 9   },
+  { n: '07', slug: 'rx7',     peso: 5   },
+  { n: '08', slug: 'nsx',     peso: 5   },
+  { n: '09', slug: 'civic',   peso: 9   },
+  { n: '10', slug: 's2000',   peso: 7   },
+  { n: '11', slug: 'evo',     peso: 7   },
+  { n: '12', slug: 'eclipse', peso: 9   },
+  { n: '13', slug: '3000gt',  peso: 9   },
+  { n: '14', slug: 'wrc',     peso: 7   },
+  { n: '15', slug: 'lfa',     peso: 5   }
 ];
+
+/**
+ * Cada modelo arrastra los datos de su carta artística (arte, OVR y estadísticas).
+ * Fuente única: `api/cartas.js`. Así el sorteo, la web y los lienzos de Printify
+ * hablan siempre de la misma carta.
+ */
+export const MODELOS = BASE.map((m) => {
+  const carta = cartaDe(m.slug);
+  if (!carta) throw new Error(`Falta la carta del modelo ${m.n} (${m.slug}) en api/cartas.js`);
+  return {
+    ...m,
+    name: carta.name,
+    ovr: carta.ovr,
+    stats: carta.stats,
+    rareza: carta.rareza,
+    arte: carta.arte,
+    arteImpresion: carta.arteImpresion
+  };
+});
 
 export const GOLD_PROB = 0.002; // 1/500 por caja
 
